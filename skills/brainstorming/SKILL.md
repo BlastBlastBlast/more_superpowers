@@ -1,15 +1,17 @@
 ---
 name: brainstorming
-description: "You MUST use this before any creative work - creating features, building components, adding functionality, or modifying behavior. Explores user intent, requirements and design before implementation."
+description: "You MUST use this before any creative work - creating features, building components, adding functionality, or modifying behavior. Also use when the prompt is empty or too vague to act on. Interviews your human partner, records an intent, then classifies and routes the work."
 ---
 
 # Brainstorming Ideas Into Designs
 
 Help turn ideas into fully formed designs and specs through natural collaborative dialogue.
 
-Start by classifying how much process the request needs, then work
-through your path: understand the context, refine the idea, present a
-design, and get your human partner's approval.
+Interview first. Write the intent down. Get your human partner to agree to it. Only then
+classify how much process the work needs and route it.
+
+The order matters. A classification made before anyone has said what they want is a guess
+about a problem nobody has stated.
 
 <HARD-GATE>
 Do NOT invoke any implementation skill, write any code, scaffold any
@@ -19,157 +21,235 @@ to EVERY task on EVERY path below — the ceremony scales with the task;
 the approval gate never does.
 </HARD-GATE>
 
+## Start Here
+
+Run this before you classify anything, including when the prompt is empty, when it is one
+vague line, or when it names a solution rather than a problem.
+
+1. **Explore project context** — files, docs, recent commits. Do not ask questions the code
+   answers.
+2. **Interview** — one question per message. See The Interview below.
+3. **Present the intent in chat** — see The Intent below.
+4. **Get an explicit approval** of that intent, and of the `<YYYY-MM>-<slug>` name you propose
+   for it.
+5. **Classify and route** — see Three Paths below.
+
+Nothing is written to disk before step 5. A spike never writes an intent file at all.
+
+## The Interview
+
+Ask about one thing at a time. Prefer multiple choice when you can offer real alternatives,
+open-ended when you cannot. Only one question per message — if a topic needs more
+exploration, break it into more questions.
+
+Stop asking when you can answer all of these yourself. Not before.
+
+1. **The problem as it happens.** Who hits this, how often, and what do they do today
+   instead? Get a concrete recent example, not a category.
+2. **The cost.** What does the current workaround cost — time, errors, money, risk? A cost
+   nobody can name is a sign the problem is not the real one.
+3. **What better looks like.** Describe the changed world, not the feature. "Customers see
+   status in the portal", not "add a status endpoint".
+4. **Who else is affected.** Which teams and which systems does this touch? Name them.
+5. **Constraints.** What must not change? Data that cannot move, auth that cannot be
+   bypassed, a deadline, a regulation.
+6. **The edges.** What is explicitly out of scope? What would make them reject the result?
+7. **How we know it worked.** What would they measure a month later?
+
+**Push back when you should.**
+
+- **The stated problem is a stated solution.** "We need a dashboard" is an answer, not a
+  problem. Ask what they would do with it, then write that down instead.
+- **The scope grew during the interview.** Say so. Offer to split it into two intents.
+- **Nobody is affected but the asker.** That is fine, but record it. It changes the priority.
+- **A constraint contradicts the outcome.** Surface it now. It becomes a flagged concern in
+  the spec.
+
+If the request describes multiple independent subsystems ("build a platform with chat, file
+storage, billing, and analytics"), flag that immediately. Help decompose it into sub-projects
+first. Each sub-project then gets its own intent and its own cycle.
+
+## The Intent
+
+An intent says what someone wants and why. It is short and goal-oriented. It does not choose
+an approach, name files, or estimate.
+
+**An intent never contains MUST, SHOULD or MAY.** Those belong in a spec. Writing requirements
+into an intent is how a spec gets written before anyone agreed on the problem.
+
+Write it in your human partner's vocabulary. If they say "claim", never switch to "case".
+
+```markdown
+# Intent: <short name>
+
+Author: <person>. Date: <YYYY-MM-DD>. Status: draft.
+
+## Problem
+<What cannot be done today, who hits it, how often. Two or three sentences.>
+
+## Proposed outcome
+<The changed world, in their terms. No implementation.>
+
+## Affected users and systems
+<Named teams, services, data stores.>
+
+## Constraints
+<What must not change. One per line.>
+
+## Out of scope
+<What this is explicitly not.>
+
+## How we will know it worked
+<The measure, and roughly when to read it.>
+
+## Open questions
+<Everything still unresolved. These travel to the spec.>
+```
+
+Present it in the conversation. Ask what you got wrong. Correct it. Then ask for an explicit
+approval, and propose the record name: a kebab-case slug prefixed with the year and month,
+like `2026-09-claims-status-self-service`.
+
+An intent with no open questions after a real interview is suspicious. Say so.
+
 ## Three Paths
 
-Before your first question, classify the request and say the
-classification out loud — "this looks bounded, so I'll present a short
-design here rather than write a spec" — so your human partner can
-override it:
+Classify only after your human partner approves the intent. Say the classification out loud —
+"the intent is agreed, and this looks bounded, so I'll go straight to a plan" — so they can
+override it.
 
-- **Spike** — a feasibility question ("can we...", "is it possible...",
-  "quick and dirty is fine") whose output is an answer, not code you
-  keep. Present the question and what you'll try in 2-3 sentences, get
-  a nod, then find out as cheaply as correctness allows. No design
-  doc, no spec file. Report findings as a recommendation; anything you
-  built stays labeled throwaway.
-- **Bounded** — a well-scoped change to code that already exists in
-  this repo: a new flag, a small endpoint, a one-file fix.
-  Understanding the kind of app is not enough — bounded means the flow
-  you are changing is already here to read. If there is no existing
-  flow to change, the task is not bounded. Ask the clarifying
-  questions that matter, present a short design IN CHAT (a few
-  sentences to a few short paragraphs), and STOP. Implementation
-  starts only after your human partner says yes to that design — a
-  bounded task's approval is as hard a gate as an architectural
-  one. No spec file, no implementation plan document.
-- **Architectural** — new projects, new subsystems, changes that
-  restructure how components fit together or alter interfaces others
-  depend on. Follow the full process: questions, approaches, sectioned
-  design, written spec, then the writing-plans skill.
+- **Spike** — a feasibility question ("can we...", "is it possible...", "quick and dirty is
+  fine") whose output is an answer, not code you keep. The intent stays in the conversation
+  and **no file is written**. Find out as cheaply as correctness allows. Report findings as a
+  recommendation; anything you built stays labeled throwaway.
+- **Bounded** — a well-scoped change to code that already exists in this repo: a new flag, a
+  small endpoint, a one-file fix. Understanding the kind of app is not enough — bounded means
+  the flow you are changing is already here to read. If there is no existing flow to change,
+  the task is not bounded. Write the intent file, then go to the writing-plans skill. No spec.
+- **Architectural** — new projects, new subsystems, changes that restructure how components
+  fit together or alter interfaces others depend on. Write the intent file, then go to the
+  writing-specs skill.
 
-When in doubt between two paths, take the heavier one. The ratchet is
-one-way: hidden complexity discovered mid-task upgrades the path —
-stop, say so, and step up. Nothing downgrades mid-task.
+When in doubt between two paths, take the heavier one. The ratchet is one-way: hidden
+complexity discovered mid-task upgrades the path — stop, say so, and step up. Nothing
+downgrades mid-task.
+
+**Upgrading out of a spike.** A spike that turns into real work writes the intent file then,
+using the intent the conversation already holds. Do not re-interview.
+
+## Where the Record Lives
+
+One change gets one directory:
+
+```
+docs/superpowers/changes/<YYYY-MM>-<slug>/
+├── intent.md     what someone wants, and why
+├── spec.md       the numbered requirements (architectural only)
+└── plan.md       the vertical slices, in order
+```
+
+Create the directory when it is absent. Commit each document on its own — that commit is the
+approval, and it is what the next stage reads. A preference from your human partner for a
+different location overrides this default.
 
 ## Anti-Pattern: "Too Simple To Need Approval"
 
-Every path ends with your human partner approving your intent before
-implementation. A todo list, a single-function utility, a config
-change — the design may be two sentences in chat, but you MUST present
-it and get approval. "Simple" tasks are where unexamined assumptions
-cause the most wasted work. What scales with simplicity is the
-artifact, never the approval.
+Every path ends with your human partner approving your intent before implementation. A todo
+list, a single-function utility, a config change — the intent may be three sentences in chat,
+but you MUST present it and get approval. "Simple" tasks are where unexamined assumptions
+cause the most wasted work. What scales with simplicity is the artifact, never the approval.
 
 ## Red Flags
 
 | Thought | Reality |
 |---------|---------|
-| "This is too simple to need a design" | Simple means a short design, not no design. Two sentences in chat, then approval. |
+| "This is too simple to need a design" | Simple means a short intent, not no intent. Three sentences in chat, then approval. |
 | "I'll call it bounded and skip the spec" | Reaching for a label to skip work IS the doubt — take the heavier path. |
 | "It's bounded and the design is obvious — I'll start while they read it" | The gate is the approval, not the design's length. Present, then stop until you hear yes. |
 | "I understand this kind of app, so it's bounded" | Bounded measures the repo, not your familiarity. A new project has no existing flow — it is architectural. |
 | "The spike works, so I'll keep the code" | A spike's output is an answer. Keeping the code is a new request — classify it. |
 | "It grew, but I'm almost done — no need to re-classify" | Hidden complexity upgrades the path mid-task. Stop and say so. |
 | "They approved the spike, so the follow-up change is approved too" | Each task gets its own classification and its own approval. |
+| "The prompt is empty, so there's nothing to do yet" | An empty prompt is the strongest signal to interview. Start asking. |
+| "I can tell it's bounded already, so I'll skip the interview" | Classification comes from the intent, not from the first sentence. Interview first. |
+| "I'll write the intent file now and get approval after" | Approval comes first. A committed intent nobody agreed to is a record of your guess. |
 
 ## Checklist
 
-Classify first, announce the path, then create a task for each item on
-your path and complete them in order.
+Everyone starts the same way. Create a task for each item and complete them in order.
 
-**Spike:**
-1. **Explore project context** — enough to frame the probe
-2. **Present question + probe plan** — 2-3 sentences
-3. **Get approval** — a nod is enough
-4. **Investigate** — as cheaply as correctness allows
-5. **Report findings** — a recommendation; label anything built as throwaway
-
-**Bounded:**
+**Every path, before classification:**
 1. **Explore project context** — check files, docs, recent commits
 2. **Ask clarifying questions** — one at a time, the ones that matter
-3. **Present short design in chat** — approach, files touched, testing
-4. **Get approval** — STOP and wait for an explicit yes; presenting the design and starting in the same breath is skipping the gate
-5. **Implement** — proceed with the normal development workflow (TDD applies); no plan document
+3. **Present the intent in chat** — problem, outcome, affected, constraints, out of scope, measure, open questions
+4. **Get approval of the intent and the record name** — STOP and wait for an explicit yes
+5. **Classify and announce the path** — spike, bounded, or architectural
 
-**Architectural:**
-1. **Explore project context** — check files, docs, recent commits
-2. **Offer the visual companion just-in-time** — NOT upfront. The first time a question would genuinely be clearer shown than described, offer it then (its own message); on approval its browser tab opens for you. If no visual question ever arises, never offer it. See the Visual Companion section below.
-3. **Ask clarifying questions** — one at a time, understand purpose/constraints/success criteria
-4. **Propose 2-3 approaches** — with trade-offs and your recommendation
-5. **Present design** — in sections scaled to their complexity, get user approval after each section
-6. **Write design doc** — save to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md` and commit
-7. **Spec self-review** — quick inline check for placeholders, contradictions, ambiguity, scope (see below)
-8. **User reviews written spec** — ask user to review the spec file before proceeding
-9. **Transition to implementation** — invoke writing-plans skill to create implementation plan
+**Then, Spike:**
+6. **Investigate** — as cheaply as correctness allows; no files written
+7. **Report findings** — a recommendation; label anything built as throwaway
+
+**Then, Bounded:**
+6. **Write and commit `intent.md`**
+7. **Present short design in chat** — approach, files touched, testing
+8. **Get approval** — STOP and wait; presenting the design and starting in the same breath is skipping the gate
+9. **Transition to planning** — invoke the writing-plans skill
+
+**Then, Architectural:**
+6. **Write and commit `intent.md`**
+7. **Offer the visual companion just-in-time** — NOT upfront. The first time a question would genuinely be clearer shown than described, offer it then (its own message). See the Visual Companion section below.
+8. **Propose 2-3 approaches** — with trade-offs and your recommendation
+9. **Present design** — in sections scaled to their complexity, get approval after each section
+10. **Transition to the spec** — invoke the writing-specs skill
 
 ## Process Flow
 
 ```dot
 digraph brainstorming {
-    "Classify: spike / bounded / architectural" [shape=diamond];
-    "Present question + probe (2-3 sentences)" [shape=box];
-    "Ask clarifying questions (bounded)" [shape=box];
-    "Present short design in chat" [shape=box];
-    "Human approves?" [shape=diamond];
-    "Investigate; report recommendation" [shape=doublecircle];
-    "Implement via normal workflow (no plan doc)" [shape=doublecircle];
     "Explore project context" [shape=box];
-    "Ask clarifying questions" [shape=box];
+    "Interview: one question per message" [shape=box];
+    "Present intent in chat" [shape=box];
+    "Human approves intent?" [shape=diamond];
+    "Classify: spike / bounded / architectural" [shape=diamond];
+    "Investigate; report recommendation" [shape=doublecircle];
+    "Write and commit intent.md" [shape=box];
+    "Present short design in chat" [shape=box];
+    "Human approves design?" [shape=diamond];
+    "Invoke writing-plans skill" [shape=doublecircle];
     "Propose 2-3 approaches" [shape=box];
     "Present design sections" [shape=box];
-    "User approves design?" [shape=diamond];
-    "Write design doc" [shape=box];
-    "Spec self-review\n(fix inline)" [shape=box];
-    "User reviews spec?" [shape=diamond];
-    "Invoke writing-plans skill" [shape=doublecircle];
+    "Invoke writing-specs skill" [shape=doublecircle];
     "Hidden complexity? Upgrade path" [shape=box];
 
-    "Classify: spike / bounded / architectural" -> "Present question + probe (2-3 sentences)" [label="spike"];
-    "Classify: spike / bounded / architectural" -> "Ask clarifying questions (bounded)" [label="bounded"];
-    "Classify: spike / bounded / architectural" -> "Explore project context" [label="architectural"];
-    "Present question + probe (2-3 sentences)" -> "Human approves?";
-    "Ask clarifying questions (bounded)" -> "Present short design in chat";
-    "Present short design in chat" -> "Human approves?";
-    "Human approves?" -> "Investigate; report recommendation" [label="spike: yes"];
-    "Human approves?" -> "Implement via normal workflow (no plan doc)" [label="bounded: yes"];
-    "Hidden complexity? Upgrade path" -> "Classify: spike / bounded / architectural";
-    "Explore project context" -> "Ask clarifying questions";
-    "Ask clarifying questions" -> "Propose 2-3 approaches";
+    "Explore project context" -> "Interview: one question per message";
+    "Interview: one question per message" -> "Present intent in chat";
+    "Present intent in chat" -> "Human approves intent?";
+    "Human approves intent?" -> "Present intent in chat" [label="no, revise"];
+    "Human approves intent?" -> "Classify: spike / bounded / architectural" [label="yes"];
+    "Classify: spike / bounded / architectural" -> "Investigate; report recommendation" [label="spike (no file)"];
+    "Classify: spike / bounded / architectural" -> "Write and commit intent.md" [label="bounded / architectural"];
+    "Write and commit intent.md" -> "Present short design in chat" [label="bounded"];
+    "Present short design in chat" -> "Human approves design?";
+    "Human approves design?" -> "Invoke writing-plans skill" [label="yes"];
+    "Write and commit intent.md" -> "Propose 2-3 approaches" [label="architectural"];
     "Propose 2-3 approaches" -> "Present design sections";
-    "Present design sections" -> "User approves design?";
-    "User approves design?" -> "Present design sections" [label="no, revise"];
-    "User approves design?" -> "Write design doc" [label="yes"];
-    "Write design doc" -> "Spec self-review\n(fix inline)";
-    "Spec self-review\n(fix inline)" -> "User reviews spec?";
-    "User reviews spec?" -> "Write design doc" [label="changes requested"];
-    "User reviews spec?" -> "Invoke writing-plans skill" [label="approved"];
+    "Present design sections" -> "Invoke writing-specs skill";
+    "Hidden complexity? Upgrade path" -> "Classify: spike / bounded / architectural";
 }
 ```
 
 **Terminal states are path-bound.** Architectural: the ONLY skill you
-invoke after brainstorming is writing-plans — never frontend-design,
-mcp-builder, or any other implementation skill. Bounded: after
-approval, implementation proceeds directly through the normal
-development workflow; no plan document. Spike: the terminal state is a
-reported recommendation.
+invoke after brainstorming is writing-specs. Bounded: the ONLY skill you
+invoke after brainstorming is writing-plans. Never frontend-design,
+mcp-builder, or any other implementation skill. Spike: the terminal
+state is a reported recommendation.
 
 ## The Process
 
-The subsections below serve the bounded and architectural paths (a
-spike stops at "present the probe, get a nod"). Sections from
+The subsections below add depth to the paths above. Sections from
 **Exploring approaches** onward are architectural-path depth — for
-bounded work, context plus a few questions plus a short in-chat design
+bounded work, context plus the interview plus a short in-chat design
 is the whole process.
-
-**Understanding the idea:**
-
-- Check out the current project state first (files, docs, recent commits)
-- Before asking detailed questions, assess scope: if the request describes multiple independent subsystems (e.g., "build a platform with chat, file storage, billing, and analytics"), flag this immediately. Don't spend questions refining details of a project that needs to be decomposed first.
-- If the project is too large for a single spec, help the user decompose into sub-projects: what are the independent pieces, how do they relate, what order should they be built? Then brainstorm the first sub-project through the normal design flow. Each sub-project gets its own spec → plan → implementation cycle.
-- For appropriately-scoped projects, ask questions one at a time to refine the idea
-- Prefer multiple choice questions when possible, but open-ended is fine too
-- Only one question per message - if a topic needs more exploration, break it into multiple questions
-- Focus on understanding: purpose, constraints, success criteria
 
 **Exploring approaches:**
 
@@ -198,37 +278,6 @@ is the whole process.
 - Explore the current structure before proposing changes. Follow existing patterns.
 - Where existing code has problems that affect the work (e.g., a file that's grown too large, unclear boundaries, tangled responsibilities), include targeted improvements as part of the design - the way a good developer improves code they're working in.
 - Don't propose unrelated refactoring. Stay focused on what serves the current goal.
-
-## After the Design (architectural path)
-
-**Documentation:**
-
-- Write the validated design (spec) to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md`
-  - (User preferences for spec location override this default)
-- Use elements-of-style:writing-clearly-and-concisely skill if available
-- Commit the design document to git
-
-**Spec Self-Review:**
-After writing the spec document, look at it with fresh eyes:
-
-1. **Placeholder scan:** Any "TBD", "TODO", incomplete sections, or vague requirements? Fix them.
-2. **Internal consistency:** Do any sections contradict each other? Does the architecture match the feature descriptions?
-3. **Scope check:** Is this focused enough for a single implementation plan, or does it need decomposition?
-4. **Ambiguity check:** Could any requirement be interpreted two different ways? If so, pick one and make it explicit.
-
-Fix any issues inline. No need to re-review — just fix and move on.
-
-**User Review Gate:**
-After the spec review loop passes, ask the user to review the written spec before proceeding:
-
-> "Spec written and committed to `<path>`. Please review it and let me know if you want to make any changes before we start writing out the implementation plan."
-
-Wait for the user's response. If they request changes, make them and re-run the spec review loop. Only proceed once the user approves.
-
-**Implementation:**
-
-- Invoke the writing-plans skill to create a detailed implementation plan
-- Do NOT invoke any other skill. writing-plans is the next step.
 
 ## Visual Companion
 

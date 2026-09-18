@@ -14,21 +14,35 @@ Execute plan by dispatching a fresh implementer subagent per task, a task review
 **Narration:** between tool calls, narrate at most one short line — the
 ledger and the tool results carry the record.
 
-**Continuous execution:** Do not pause to check in with your human partner between tasks. Execute all tasks from the plan without stopping. The only reasons to stop are the four named below, or all tasks complete. "Should I continue?" prompts and progress summaries waste their time — they asked you to execute the plan, so execute it.
+**Continuous execution:** Do not pause to check in with your human partner between tasks. Execute all tasks from the plan without stopping. The only reasons to stop are the slice-one checkpoint and the four named below, or all tasks complete. "Should I continue?" prompts and progress summaries waste their time — they asked you to execute the plan, so execute it.
 
 **Rulings, not stalls.** A running plan does not wait on a human. Conflicts,
 ambiguities, plan defects, a cap you would have asked to exceed — decide
 them. The spec is the binding authority, the plan is its argument, and your
-judgment settles what neither answers. Record every decision in the ledger as
+judgment settles what neither answers.
+
+**This authority is yours alone.** You coordinate, so you see the whole plan,
+the spec and every task. An implementer sees one brief. It rules on nothing,
+edits no plan and no spec, and implements no approach its brief did not state —
+when its brief is wrong it reports BLOCKED and stops, and you fix the plan
+here. An implementer that quietly repairs a plan to fit its own slice leaves
+every other slice building against text that no longer describes the work.
+
+Record every decision in the ledger as
 `Ruling: <what you decided> — <why> — <what it costs if wrong>`, and keep
 going. A wrong ruling costs rework your human partner can see and undo; a
 session parked on a question costs their whole day and buys nothing.
 
-Four things stop you, and only these: an irreversible or destructive
+Five things stop you, and only these: **the slice-one checkpoint of an
+architectural change** (see The Task Loop); an irreversible or destructive
 operation; a security-sensitive action; a side effect outside this worktree
 that norms say you ask about first (a merge, a push to a shared branch, a
 publish); and a plan so broken that every path forward is a guess. For those,
 stop and ask.
+
+The slice-one checkpoint is the one stop your human partner asked for in
+advance. It is not a "should I continue?" prompt — it is the first moment the
+work can be seen, and it happens once.
 
 ## When to Use
 
@@ -88,6 +102,8 @@ digraph process {
     "Dispatch final code reviewer (../requesting-code-review/code-reviewer.md)" [shape=box];
     "Final findings? ONE fix dispatch, one scoped re-review, adjudicate residuals" [shape=box];
     "Final review clean: delete this plan's workspace" [shape=box];
+    "spec.md exists?" [shape=diamond];
+    "Use superpowers:reconciling-specs" [shape=box];
     "Use superpowers:finishing-a-development-branch" [shape=box style=filled fillcolor=lightgreen];
 
     "Setup: worktree, ledger check, read plan, pre-flight review" -> "Dispatch implementer subagent (./implementer-prompt.md)";
@@ -117,7 +133,10 @@ digraph process {
     "More tasks remain?" -> "Dispatch final code reviewer (../requesting-code-review/code-reviewer.md)" [label="no"];
     "Dispatch final code reviewer (../requesting-code-review/code-reviewer.md)" -> "Final findings? ONE fix dispatch, one scoped re-review, adjudicate residuals";
     "Final findings? ONE fix dispatch, one scoped re-review, adjudicate residuals" -> "Final review clean: delete this plan's workspace";
-    "Final review clean: delete this plan's workspace" -> "Use superpowers:finishing-a-development-branch";
+    "Final review clean: delete this plan's workspace" -> "spec.md exists?";
+    "spec.md exists?" -> "Use superpowers:reconciling-specs" [label="yes"];
+    "spec.md exists?" -> "Use superpowers:finishing-a-development-branch" [label="no"];
+    "Use superpowers:reconciling-specs" -> "Use superpowers:finishing-a-development-branch";
 }
 ```
 
@@ -183,6 +202,15 @@ implementation.
 
 ## Model Selection
 
+**The plan decides. Read the model from the slice.** A plan written by
+`superpowers:writing-plans` names a model for every slice a subagent
+implements. Use it. When you dispatch on a different model than the plan named,
+say so out loud and give the reason — a silent substitution makes the plan a
+lie and hides a cost from your human partner.
+
+The rest of this section settles a case the plan did not name, and defines the
+tiers the plan refers to.
+
 Use the least powerful model that can handle each role to conserve cost and increase speed.
 
 **Mechanical implementation tasks** (isolated functions, clear specs, 1-2 files): use a fast, cheap model. Most implementation tasks are mechanical when the plan is well-specified.
@@ -218,7 +246,73 @@ that implementer. Single-file mechanical fixes also take the cheapest tier.
 - Touches multiple files with integration concerns → standard model
 - Requires design judgment or broad codebase understanding → most capable model
 
+## Area Context
+
+Repositories keep conventions next to the code they govern. An implementer that
+does not read them reimplements a helper that already exists, or breaks a
+convention nobody wrote down twice.
+
+**What a subagent gets on its own.** Measured, not assumed — a dispatched
+implementer that reads a file two directories deep receives:
+
+| Source | Arrives? |
+|---|---|
+| `~/.claude/CLAUDE.md` and the project root `CLAUDE.md` | yes, at dispatch |
+| A nested `CLAUDE.md` in any directory on the path to a file it reads | yes, on the read |
+| `.claude/rules/*.md` whose `paths:` glob matches | yes, on the read |
+| **`AGENTS.md`, at any depth** | **no, never** |
+| Your conversation, the files you read, `SessionStart` output | no |
+
+So the `CLAUDE.md` hierarchy looks after itself, including nested files and
+path-scoped rules. Do not paste any of it into a dispatch.
+
+**`AGENTS.md` is the gap.** Claude Code does not read it, at the root or in a
+subdirectory. A repository that keeps conventions in `AGENTS.md` hands its
+implementers nothing. Before dispatching, walk from the repo root down to each
+file the task edits and name the path of every `AGENTS.md` that has no
+`CLAUDE.md` beside it:
+
+```bash
+# AGENTS.md files governing a task that edits app/campaigns/models.py
+d=app/campaigns; while [ "$d" != "." ]; do
+  [ -f "$d/AGENTS.md" ] && [ ! -f "$d/CLAUDE.md" ] && echo "$d/AGENTS.md"
+  d=$(dirname "$d")
+done
+```
+
+Name the paths, never the contents. A 300-line area guide pasted into a dispatch
+stays in your context for the rest of the session, and the subagent can read a
+path for itself.
+
+**The repository can fix this once** instead of every dispatch paying for it:
+symlink each subdirectory `AGENTS.md` to a `.claude/rules/*.md` that carries the
+matching `paths:` frontmatter. The rule then loads by itself, and other tools
+still find the file where they expect it. Say so once when you notice a repo
+with unaccompanied `AGENTS.md` files. Do not restructure their repository
+mid-task.
+
+**A subagent's `CLAUDE.md` can be stale.** An implementer dispatched after you
+edited `CLAUDE.md` was observed receiving the version from before the edit. When
+a task depends on an instruction file this session changed, put the changed rule
+in the brief rather than trusting the hierarchy to carry it.
+
+**When a repository has none of these,** say so in the ledger once and move on.
+Their absence is a fact about the repository, not a reason to stop.
+
 ## The Task Loop
+
+**Stop after slice one of an architectural change.** When the plan came from a
+spec, complete slice one, run its demonstration command, show your human
+partner the output, and wait. That pause is the cheapest moment to learn the
+approach is wrong — everything after slice one costs more to undo. Once they
+approve the direction, the remaining slices run without pausing.
+
+A bounded change has no spec and does not stop. Run it to the end.
+
+**Dispatch independent slices in parallel.** When two slices share no state and
+neither consumes what the other produces, send both in the same message so they
+run at once. The plan's `Consumes` and `Produces` blocks are what tell you which
+slices are independent. Slices that touch the same files are not.
 
 **Batch small same-shape work.** When the plan lists several tasks that are
 each a small, independent edit of the same kind — the same one-line fix,
@@ -257,9 +351,17 @@ and fix-round diffs need it.
   first — it is your requirements, with the exact values to use verbatim";
   (3) interfaces and decisions from earlier tasks that the brief cannot
   know; (4) your resolution of any ambiguity you noticed in the brief;
-  (5) the report-file path and report contract. Exact values (numbers,
-  magic strings, signatures, test cases) appear only in the brief. Never
-  make a subagent read the whole plan file.
+  (5) the paths of the area instruction files covering the directories this
+  task touches (see Area Context below); (6) the report-file path and report
+  contract. Exact values (numbers, magic strings, signatures, test cases)
+  appear only in the brief. Never make a subagent read the whole plan file.
+- **Area context:** a subagent gets the `CLAUDE.md` hierarchy — user,
+  project root, local, managed — automatically at dispatch. It does **not**
+  get your conversation, the files you have read, or anything a `SessionStart`
+  hook injected, because a dispatch fires `SubagentStart` instead. Whether
+  a *nested* `CLAUDE.md` or a `paths:`-scoped rule loads inside the
+  subagent's own file reads is not something to rely on. So name the area
+  files. See Area Context below for how to find them.
 - **Report file:** name the implementer's report file after the brief
   (brief `…/task-N-brief.md` → report `…/task-N-report.md`) and put it in
   the dispatch prompt. The implementer writes the full report there and
@@ -484,7 +586,18 @@ delete this plan's workspace (`rm -rf <workspace>`) — the git history is
 the record now. Sibling directories belong to other plans; leave them
 alone.
 
-Use superpowers:finishing-a-development-branch.
+**Then reconcile the spec, if there is one.** Check for `spec.md` in the
+change record directory — check the file, do not go from memory.
+
+- **`spec.md` exists:** use superpowers:reconciling-specs. It lists what the
+  build changed, gets a ruling on each divergence, updates the spec, and hands
+  over to the finish skill itself.
+- **No `spec.md`** (a bounded change went intent → plan): use
+  superpowers:finishing-a-development-branch directly.
+
+Every task loop departs from the spec somewhere — that is what the rulings
+above are. Shipping without reconciling leaves the spec describing software
+nobody built, and the next change inherits it.
 
 ## Common Rationalizations
 

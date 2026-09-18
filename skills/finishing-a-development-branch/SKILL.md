@@ -123,6 +123,32 @@ tooling — its CLI if one is available, or the creation URL most forges
 print when you push — following the repo's PR template and conventions if
 present, and report the URL to your human partner.
 
+**Write the body, do not ask for it.** Your human partner should not have to
+describe work you just did. Generate the body and show it to them for approval
+before the request opens.
+
+Where a `spec.md` exists for this change, it is the source. Read it after
+`superpowers:reconciling-specs` has made it true again — a body written from a
+stale spec describes work that did not ship.
+
+The body:
+
+- **Opens with a plain explanation of what the change is**, written for someone
+  who has never opened this repo. No class names, no file paths, no internal
+  vocabulary in that first paragraph. If a reader cannot tell what changed for
+  them, rewrite it.
+- **Lists the requirements the change satisfies**, by identifier, where a spec
+  exists. `REQ-3, REQ-4.2` is enough — the spec travels in the branch.
+- **Fills every section of the repo's PR template.** Every one. A template
+  section left empty is what gets a pull request closed unread. **When the repo
+  has no template**, use [pr-body-template.md](pr-body-template.md) — it ships
+  with this skill and works in any repository.
+- **Contains no placeholder.** "TBD" and "TODO" are placeholders. So is a
+  heading with nothing under it.
+- **Uses the same controlled language as the spec.** One idea per sentence,
+  active voice, no semicolons. Check it:
+  `python3 skills/asd-ste100/scripts/ste-lint.py <body-file>`
+
 Keep the worktree — your human partner iterates on PR feedback there.
 
 ### Option 3: Keep As-Is
