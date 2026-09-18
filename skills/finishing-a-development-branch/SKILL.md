@@ -140,7 +140,9 @@ The body:
 - **Lists the requirements the change satisfies**, by identifier, where a spec
   exists. `REQ-3, REQ-4.2` is enough — the spec travels in the branch.
 - **Fills every section of the repo's PR template.** Every one. A template
-  section left empty is what gets a pull request closed unread.
+  section left empty is what gets a pull request closed unread. **When the repo
+  has no template**, use [pr-body-template.md](pr-body-template.md) — it ships
+  with this skill and works in any repository.
 - **Contains no placeholder.** "TBD" and "TODO" are placeholders. So is a
   heading with nothing under it.
 - **Uses the same controlled language as the spec.** One idea per sentence,

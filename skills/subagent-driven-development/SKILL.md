@@ -237,6 +237,46 @@ that implementer. Single-file mechanical fixes also take the cheapest tier.
 - Touches multiple files with integration concerns → standard model
 - Requires design judgment or broad codebase understanding → most capable model
 
+## Area Context
+
+Repositories keep conventions next to the code they govern. An implementer that
+does not read them reimplements a helper that already exists, or breaks a
+convention nobody wrote down twice.
+
+**What a subagent gets on its own.** The whole `CLAUDE.md` hierarchy — user,
+project root, `CLAUDE.local.md`, managed policy — loads at dispatch without you
+doing anything. Do not paste those into a prompt.
+
+**What it does not get.** Your conversation. The files you have read. Anything a
+`SessionStart` hook injected, including this plugin's own bootstrap — a dispatch
+fires `SubagentStart`, which is a different event. Nested and path-scoped
+instruction files are an open question, so treat them as *not* arriving.
+
+**Before each dispatch**, find the area files for the directories the task
+touches and name their paths in the brief. For each directory on the path from
+the repo root down to each file the task edits, in this order:
+
+1. `<dir>/CLAUDE.md` — Claude Code reads this one. If it exists, name it.
+2. `<dir>/AGENTS.md` — only when there is no `CLAUDE.md` beside it. **Claude
+   Code does not read `AGENTS.md` on its own**, so an unaccompanied one will
+   never arrive unless you name its path.
+3. `.claude/rules/*.md` whose `paths:` glob matches a file the task edits.
+
+```bash
+# Area files governing a task that edits app/campaigns/models.py
+d=app/campaigns; while [ "$d" != "." ]; do
+  ls "$d"/CLAUDE.md "$d"/AGENTS.md 2>/dev/null; d=$(dirname "$d");
+done
+grep -l 'paths:' .claude/rules/*.md 2>/dev/null
+```
+
+Name the paths. Do not paste the contents — a 300-line area guide pasted into a
+dispatch stays in your context for the rest of the session, and the subagent can
+read a path for itself.
+
+**When a repository has none of these,** say so in the ledger once and move on.
+Their absence is a fact about the repository, not a reason to stop.
+
 ## The Task Loop
 
 **Stop after slice one of an architectural change.** When the plan came from a
@@ -289,9 +329,17 @@ and fix-round diffs need it.
   first — it is your requirements, with the exact values to use verbatim";
   (3) interfaces and decisions from earlier tasks that the brief cannot
   know; (4) your resolution of any ambiguity you noticed in the brief;
-  (5) the report-file path and report contract. Exact values (numbers,
-  magic strings, signatures, test cases) appear only in the brief. Never
-  make a subagent read the whole plan file.
+  (5) the paths of the area instruction files covering the directories this
+  task touches (see Area Context below); (6) the report-file path and report
+  contract. Exact values (numbers, magic strings, signatures, test cases)
+  appear only in the brief. Never make a subagent read the whole plan file.
+- **Area context:** a subagent gets the `CLAUDE.md` hierarchy — user,
+  project root, local, managed — automatically at dispatch. It does **not**
+  get your conversation, the files you have read, or anything a `SessionStart`
+  hook injected, because a dispatch fires `SubagentStart` instead. Whether
+  a *nested* `CLAUDE.md` or a `paths:`-scoped rule loads inside the
+  subagent's own file reads is not something to rely on. So name the area
+  files. See Area Context below for how to find them.
 - **Report file:** name the implementer's report file after the brief
   (brief `…/task-N-brief.md` → report `…/task-N-report.md`) and put it in
   the dispatch prompt. The implementer writes the full report there and
