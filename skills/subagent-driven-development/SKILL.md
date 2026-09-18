@@ -243,36 +243,49 @@ Repositories keep conventions next to the code they govern. An implementer that
 does not read them reimplements a helper that already exists, or breaks a
 convention nobody wrote down twice.
 
-**What a subagent gets on its own.** The whole `CLAUDE.md` hierarchy — user,
-project root, `CLAUDE.local.md`, managed policy — loads at dispatch without you
-doing anything. Do not paste those into a prompt.
+**What a subagent gets on its own.** Measured, not assumed — a dispatched
+implementer that reads a file two directories deep receives:
 
-**What it does not get.** Your conversation. The files you have read. Anything a
-`SessionStart` hook injected, including this plugin's own bootstrap — a dispatch
-fires `SubagentStart`, which is a different event. Nested and path-scoped
-instruction files are an open question, so treat them as *not* arriving.
+| Source | Arrives? |
+|---|---|
+| `~/.claude/CLAUDE.md` and the project root `CLAUDE.md` | yes, at dispatch |
+| A nested `CLAUDE.md` in any directory on the path to a file it reads | yes, on the read |
+| `.claude/rules/*.md` whose `paths:` glob matches | yes, on the read |
+| **`AGENTS.md`, at any depth** | **no, never** |
+| Your conversation, the files you read, `SessionStart` output | no |
 
-**Before each dispatch**, find the area files for the directories the task
-touches and name their paths in the brief. For each directory on the path from
-the repo root down to each file the task edits, in this order:
+So the `CLAUDE.md` hierarchy looks after itself, including nested files and
+path-scoped rules. Do not paste any of it into a dispatch.
 
-1. `<dir>/CLAUDE.md` — Claude Code reads this one. If it exists, name it.
-2. `<dir>/AGENTS.md` — only when there is no `CLAUDE.md` beside it. **Claude
-   Code does not read `AGENTS.md` on its own**, so an unaccompanied one will
-   never arrive unless you name its path.
-3. `.claude/rules/*.md` whose `paths:` glob matches a file the task edits.
+**`AGENTS.md` is the gap.** Claude Code does not read it, at the root or in a
+subdirectory. A repository that keeps conventions in `AGENTS.md` hands its
+implementers nothing. Before dispatching, walk from the repo root down to each
+file the task edits and name the path of every `AGENTS.md` that has no
+`CLAUDE.md` beside it:
 
 ```bash
-# Area files governing a task that edits app/campaigns/models.py
+# AGENTS.md files governing a task that edits app/campaigns/models.py
 d=app/campaigns; while [ "$d" != "." ]; do
-  ls "$d"/CLAUDE.md "$d"/AGENTS.md 2>/dev/null; d=$(dirname "$d");
+  [ -f "$d/AGENTS.md" ] && [ ! -f "$d/CLAUDE.md" ] && echo "$d/AGENTS.md"
+  d=$(dirname "$d")
 done
-grep -l 'paths:' .claude/rules/*.md 2>/dev/null
 ```
 
-Name the paths. Do not paste the contents — a 300-line area guide pasted into a
-dispatch stays in your context for the rest of the session, and the subagent can
-read a path for itself.
+Name the paths, never the contents. A 300-line area guide pasted into a dispatch
+stays in your context for the rest of the session, and the subagent can read a
+path for itself.
+
+**The repository can fix this once** instead of every dispatch paying for it:
+symlink each subdirectory `AGENTS.md` to a `.claude/rules/*.md` that carries the
+matching `paths:` frontmatter. The rule then loads by itself, and other tools
+still find the file where they expect it. Say so once when you notice a repo
+with unaccompanied `AGENTS.md` files. Do not restructure their repository
+mid-task.
+
+**A subagent's `CLAUDE.md` can be stale.** An implementer dispatched after you
+edited `CLAUDE.md` was observed receiving the version from before the edit. When
+a task depends on an instruction file this session changed, put the changed rule
+in the brief rather than trusting the hierarchy to carry it.
 
 **When a repository has none of these,** say so in the ledger once and move on.
 Their absence is a fact about the repository, not a reason to stop.
