@@ -14,7 +14,7 @@ Execute plan by dispatching a fresh implementer subagent per task, a task review
 **Narration:** between tool calls, narrate at most one short line — the
 ledger and the tool results carry the record.
 
-**Continuous execution:** Do not pause to check in with your human partner between tasks. Execute all tasks from the plan without stopping. The only reasons to stop are the four named below, or all tasks complete. "Should I continue?" prompts and progress summaries waste their time — they asked you to execute the plan, so execute it.
+**Continuous execution:** Do not pause to check in with your human partner between tasks. Execute all tasks from the plan without stopping. The only reasons to stop are the slice-one checkpoint and the four named below, or all tasks complete. "Should I continue?" prompts and progress summaries waste their time — they asked you to execute the plan, so execute it.
 
 **Rulings, not stalls.** A running plan does not wait on a human. Conflicts,
 ambiguities, plan defects, a cap you would have asked to exceed — decide
@@ -24,11 +24,16 @@ judgment settles what neither answers. Record every decision in the ledger as
 going. A wrong ruling costs rework your human partner can see and undo; a
 session parked on a question costs their whole day and buys nothing.
 
-Four things stop you, and only these: an irreversible or destructive
+Five things stop you, and only these: **the slice-one checkpoint of an
+architectural change** (see The Task Loop); an irreversible or destructive
 operation; a security-sensitive action; a side effect outside this worktree
 that norms say you ask about first (a merge, a push to a shared branch, a
 publish); and a plan so broken that every path forward is a guess. For those,
 stop and ask.
+
+The slice-one checkpoint is the one stop your human partner asked for in
+advance. It is not a "should I continue?" prompt — it is the first moment the
+work can be seen, and it happens once.
 
 ## When to Use
 
@@ -88,6 +93,8 @@ digraph process {
     "Dispatch final code reviewer (../requesting-code-review/code-reviewer.md)" [shape=box];
     "Final findings? ONE fix dispatch, one scoped re-review, adjudicate residuals" [shape=box];
     "Final review clean: delete this plan's workspace" [shape=box];
+    "spec.md exists?" [shape=diamond];
+    "Use superpowers:reconciling-specs" [shape=box];
     "Use superpowers:finishing-a-development-branch" [shape=box style=filled fillcolor=lightgreen];
 
     "Setup: worktree, ledger check, read plan, pre-flight review" -> "Dispatch implementer subagent (./implementer-prompt.md)";
@@ -117,7 +124,10 @@ digraph process {
     "More tasks remain?" -> "Dispatch final code reviewer (../requesting-code-review/code-reviewer.md)" [label="no"];
     "Dispatch final code reviewer (../requesting-code-review/code-reviewer.md)" -> "Final findings? ONE fix dispatch, one scoped re-review, adjudicate residuals";
     "Final findings? ONE fix dispatch, one scoped re-review, adjudicate residuals" -> "Final review clean: delete this plan's workspace";
-    "Final review clean: delete this plan's workspace" -> "Use superpowers:finishing-a-development-branch";
+    "Final review clean: delete this plan's workspace" -> "spec.md exists?";
+    "spec.md exists?" -> "Use superpowers:reconciling-specs" [label="yes"];
+    "spec.md exists?" -> "Use superpowers:finishing-a-development-branch" [label="no"];
+    "Use superpowers:reconciling-specs" -> "Use superpowers:finishing-a-development-branch";
 }
 ```
 
@@ -506,7 +516,18 @@ delete this plan's workspace (`rm -rf <workspace>`) — the git history is
 the record now. Sibling directories belong to other plans; leave them
 alone.
 
-Use superpowers:finishing-a-development-branch.
+**Then reconcile the spec, if there is one.** Check for `spec.md` in the
+change record directory — check the file, do not go from memory.
+
+- **`spec.md` exists:** use superpowers:reconciling-specs. It lists what the
+  build changed, gets a ruling on each divergence, updates the spec, and hands
+  over to the finish skill itself.
+- **No `spec.md`** (a bounded change went intent → plan): use
+  superpowers:finishing-a-development-branch directly.
+
+Every task loop departs from the spec somewhere — that is what the rulings
+above are. Shipping without reconciling leaves the spec describing software
+nobody built, and the next change inherits it.
 
 ## Common Rationalizations
 

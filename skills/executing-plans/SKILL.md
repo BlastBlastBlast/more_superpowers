@@ -7,7 +7,9 @@ description: Use when you have a written implementation plan to execute in a sep
 
 ## Overview
 
-Load plan, review critically, execute all tasks, report when complete.
+Load plan, review critically, execute the slices in order, report when complete.
+An architectural change stops once, after slice one, so your human partner can see
+the shape of the work before the rest is built.
 
 **Announce at start:** "I'm using the executing-plans skill to implement this plan."
 
@@ -41,10 +43,20 @@ A bounded change has no spec and does not stop. Run it to the end.
 
 ### Step 3: Complete Development
 
-After all tasks complete and verified:
+After all slices complete and verified:
+
+**If this change has a `spec.md`:**
+- Announce: "I'm using the reconciling-specs skill to check the spec against what shipped."
+- **REQUIRED SUB-SKILL:** Use superpowers:reconciling-specs
+- It hands over to finishing-a-development-branch when the rulings are done
+
+**If this change has no `spec.md`** (a bounded change went intent → plan):
 - Announce: "I'm using the finishing-a-development-branch skill to complete this work."
 - **REQUIRED SUB-SKILL:** Use superpowers:finishing-a-development-branch
 - Follow that skill to verify tests, present options, execute choice
+
+Skipping the reconcile on a change that has a spec leaves the spec describing
+software that does not exist. Check for the file — do not go from memory.
 
 ## When to Stop and Ask for Help
 
