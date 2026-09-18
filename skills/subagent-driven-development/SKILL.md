@@ -19,7 +19,16 @@ ledger and the tool results carry the record.
 **Rulings, not stalls.** A running plan does not wait on a human. Conflicts,
 ambiguities, plan defects, a cap you would have asked to exceed — decide
 them. The spec is the binding authority, the plan is its argument, and your
-judgment settles what neither answers. Record every decision in the ledger as
+judgment settles what neither answers.
+
+**This authority is yours alone.** You coordinate, so you see the whole plan,
+the spec and every task. An implementer sees one brief. It rules on nothing,
+edits no plan and no spec, and implements no approach its brief did not state —
+when its brief is wrong it reports BLOCKED and stops, and you fix the plan
+here. An implementer that quietly repairs a plan to fit its own slice leaves
+every other slice building against text that no longer describes the work.
+
+Record every decision in the ledger as
 `Ruling: <what you decided> — <why> — <what it costs if wrong>`, and keep
 going. A wrong ruling costs rework your human partner can see and undo; a
 session parked on a question costs their whole day and buys nothing.
