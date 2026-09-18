@@ -100,36 +100,34 @@ finds a keyword, an identifier, an actor and a proof in every requirement of it.
 *Proof: a plan for a feature that crosses three layers puts one demonstrable path through all three
 layers in slice one, and a recorded session stops there.*
 
-**REQ-5** The `writing-plans` skill MUST record a risk assessment for each slice, and MUST choose the
+**REQ-5** The `writing-plans` skill MUST record a risk assessment for each slice, and MUST size the
 tests from that assessment.
 
 - **REQ-5.1** The risk assessment MUST name where the change can fail, and MUST name what that failure
   costs.
-- **REQ-5.2** The skill MAY record "no test" for a slice.
-- **REQ-5.3** A slice with no test MUST record the reason.
-- **REQ-5.4** The `test-driven-development` skill MUST keep the failing test first when the plan calls
-  for a test.
-- **REQ-5.5** The `test-driven-development` skill MUST keep the failing test first for a bug fix. The
+- **REQ-5.2** The skill MUST concentrate the tests of a slice where the risk assessment names a cost.
+- **REQ-5.3** The `test-driven-development` skill MUST keep the failing test first for new behavior.
+- **REQ-5.4** The `test-driven-development` skill MUST keep the failing test first for a bug fix. The
   failing test proves the cause.
+- **REQ-5.5** The `test-driven-development` skill MUST keep the Iron Law.
 - **REQ-5.6** The `writing-plans` skill MUST NOT ask for one test for each file.
 - **REQ-5.7** The `writing-plans` skill MUST NOT ask for one test for each function.
-- **REQ-5.8** The `test-driven-development` skill MUST treat the risk assessment as the authority on
-  whether a slice gets a test.
-- **REQ-5.9** The `test-driven-development` skill MUST NOT state that production code always needs a
-  failing test first. The current Iron Law states that.
+- **REQ-5.8** The `writing-plans` skill MUST NOT ask for a test that only raises coverage.
+- **REQ-5.9** The `writing-plans` skill MUST NOT record "no test" for a slice that changes behavior.
+  The exceptions in `test-driven-development` stay the only exceptions.
 
-*Proof: a plan for a pure rename records no test and states the reason, and a plan for a change to a
-payment path records tests at that boundary.*
+*Proof: a plan for a change to a payment path concentrates its tests at that boundary, and a plan for a
+change that touches twelve files asks for fewer than twelve tests.*
 
-**REQ-6** The `writing-plans` skill MUST name a model for each slice, and the dispatching skill MUST
-use the model that the plan names.
+**REQ-6** The `writing-plans` skill MUST name a model for each slice that a subagent implements, and
+the dispatching skill MUST use the model that the plan names.
 
 - **REQ-6.1** The plan MUST assign the cheap tier to a slice whose files, tests, approach and code the
   plan all state.
 - **REQ-6.2** The plan MUST assign the standard tier to a slice that crosses files, or that works from
   prose alone.
-- **REQ-6.3** The plan MUST assign the most capable tier to design work, to debugging work, and to the
-  final review.
+- **REQ-6.3** The plan MUST NOT name a model for a stage that the session runs itself. The interview,
+  the spec, the plan, the review and the reconcile all run on the session's own model.
 - **REQ-6.4** The `subagent-driven-development` skill MUST name a model in every dispatch.
 - **REQ-6.5** The `subagent-driven-development` skill MUST report a deviation from the model that the
   plan names.
@@ -312,17 +310,20 @@ stays in the conversation. REQ-2.10, REQ-2.11 and REQ-9.5 carry the ruling. REQ-
 where the class was wrong, because an upgrade from a spike writes the intent that the conversation
 already holds.
 
-**FC-4 — REQ-5 overrides the Iron Law in `test-driven-development`. Ruled.**
+**FC-4 — REQ-5 overrode the Iron Law in `test-driven-development`. Ruled, and then reversed.**
 
 `skills/test-driven-development/SKILL.md` states "NO PRODUCTION CODE WITHOUT A FAILING TEST FIRST". It
 lists refactoring and behavior changes under "Always". It admits three exceptions, and each one asks
 the human partner first. REQ-5.2 lets a plan record "no test" for a slice without that question.
 
-Lars ruled on 2026-09-18. The risk assessment is the authority. REQ-5.8 and REQ-5.9 rewrite the Iron
-Law. Test-first still holds wherever the plan calls for a test, and REQ-5.4 and REQ-5.5 keep it.
+Lars ruled on 2026-09-18, and then reversed that ruling on the same day. The Iron Law stays. REQ-5.5
+keeps it and REQ-5.9 keeps its exceptions as the only exceptions.
 
-This is the change that the repository protects by name. It carries the heaviest eval burden under the
-FC-2 ruling.
+The complaint in the intent is about volume, not about test-first. REQ-5.2, REQ-5.6, REQ-5.7 and
+REQ-5.8 answer the volume. A test that only raises coverage is wasted code, and the risk assessment is
+what stops the plan from asking for one.
+
+No conflict remains between REQ-5 and `test-driven-development`.
 
 **FC-5 — REQ-4.6 overrides the autonomy of the execution skills. Ruled.**
 
@@ -345,9 +346,11 @@ model takes more turns on prose work, and the extra turns cost more than the che
 
 The harness holds 96 scenarios. 33 of them exercise behavior that this spec changes. 18 cover
 `subagent-driven-development`, 4 cover `brainstorming`, 4 cover the test craft, and 3 cover spec
-authoring. The scenario `tdd-holds-under-tests-later-pressure` states that the agent writes the test
-first after the human partner asks for the code first. REQ-5.9 removes the rule that produces that
-behavior.
+authoring.
+
+The reversal of FC-4 removes most of this risk. The scenario `tdd-holds-under-tests-later-pressure`
+states that the agent writes the test first after the human partner asks for the code first. REQ-5.5
+keeps the rule that produces that behavior, so the scenario keeps its meaning.
 
 A scenario that holds the old behavior needs an edit. Those scenarios live in `superpowers-evals`,
 which is a separate repository. `.gitignore` excludes `evals/`, so no commit in this change can carry
@@ -376,13 +379,13 @@ inside the `docs/superpowers/` namespace that the plugin already uses. This chan
 **Whether reconcile is its own stage.** Answered. REQ-7 and REQ-10.6 make it a skill of its own that
 runs before the finish stage.
 
-**What decides a test's risk profile.** Answered by REQ-5.1, REQ-5.2 and REQ-5.3. The plan stage
-decides, and "no test" is an allowed answer with a recorded reason. REQ-5.8 makes that assessment the
-authority over the Iron Law.
+**What decides a test's risk profile.** Answered by REQ-5.1 and REQ-5.2. The plan stage decides where
+the tests concentrate. It does not decide whether behavior gets a test, because REQ-5.5 keeps the Iron
+Law.
 
-**Where the model policy lives.** Answered by REQ-6. The plan records the model for each slice. The
-Model Selection section of `subagent-driven-development` keeps the tier definitions, and FC-6 records
-the reading.
+**Where the model policy lives.** Answered by REQ-6. The plan records the model only for a slice that a
+subagent implements. Every other stage runs on the session's own model. The Model Selection section of
+`subagent-driven-development` keeps the tier definitions, and FC-6 records the reading.
 
 **The smallest change that earns an intent.** Answered by the FC-3 ruling. Every change earns an
 interview and an intent. A spike keeps that intent in the conversation, so the smallest change that
