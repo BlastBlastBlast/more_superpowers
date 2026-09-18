@@ -22,13 +22,22 @@ Load plan, review critically, execute all tasks, report when complete.
 4. If concerns: Raise them with your human partner before starting
 5. If no concerns: Create todos for the plan items and proceed
 
-### Step 2: Execute Tasks
+### Step 2: Execute Slices
 
-For each task:
+For each slice:
 1. Mark as in_progress
 2. Follow each step exactly (plan has bite-sized steps)
 3. Run verifications as specified
-4. Mark as completed
+4. Run the slice's demonstration command
+5. Mark as completed
+
+**Stop after slice one of an architectural change.** When the plan came from a
+spec, run slice one's demonstration command, show your human partner the
+output, and wait for them to continue, redirect, or stop. Do not start slice two
+on your own. Once they approve the direction, the remaining slices run without
+pausing.
+
+A bounded change has no spec and does not stop. Run it to the end.
 
 ### Step 3: Complete Development
 

@@ -183,6 +183,15 @@ implementation.
 
 ## Model Selection
 
+**The plan decides. Read the model from the slice.** A plan written by
+`superpowers:writing-plans` names a model for every slice a subagent
+implements. Use it. When you dispatch on a different model than the plan named,
+say so out loud and give the reason — a silent substitution makes the plan a
+lie and hides a cost from your human partner.
+
+The rest of this section settles a case the plan did not name, and defines the
+tiers the plan refers to.
+
 Use the least powerful model that can handle each role to conserve cost and increase speed.
 
 **Mechanical implementation tasks** (isolated functions, clear specs, 1-2 files): use a fast, cheap model. Most implementation tasks are mechanical when the plan is well-specified.
@@ -219,6 +228,19 @@ that implementer. Single-file mechanical fixes also take the cheapest tier.
 - Requires design judgment or broad codebase understanding → most capable model
 
 ## The Task Loop
+
+**Stop after slice one of an architectural change.** When the plan came from a
+spec, complete slice one, run its demonstration command, show your human
+partner the output, and wait. That pause is the cheapest moment to learn the
+approach is wrong — everything after slice one costs more to undo. Once they
+approve the direction, the remaining slices run without pausing.
+
+A bounded change has no spec and does not stop. Run it to the end.
+
+**Dispatch independent slices in parallel.** When two slices share no state and
+neither consumes what the other produces, send both in the same message so they
+run at once. The plan's `Consumes` and `Produces` blocks are what tell you which
+slices are independent. Slices that touch the same files are not.
 
 **Batch small same-shape work.** When the plan lists several tasks that are
 each a small, independent edit of the same kind — the same one-line fix,

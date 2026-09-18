@@ -29,6 +29,7 @@ When multiple skills apply, process skills come first — they set the approach,
 
 - "Let's build X" → superpowers:brainstorming first, then implementation skills.
 - "Fix this bug" → superpowers:systematic-debugging first, then domain skills.
+- An empty prompt, or one too vague to act on → superpowers:brainstorming. It interviews before it classifies, so a vague ask is the case it is built for, not a reason to wait.
 
 ## Red Flags
 
@@ -37,6 +38,7 @@ These thoughts mean STOP—you're rationalizing:
 | Thought | Reality |
 |---------|---------|
 | "This is just a simple question" | Questions are tasks. Check for skills. |
+| "They haven't told me enough to start" | That's brainstorming's trigger, not a blocker. Invoke it and interview. |
 | "I need more context first" | Skill check comes BEFORE clarifying questions. |
 | "Let me explore the codebase first" | Skills tell you HOW to explore. Check first. |
 | "I can check git/files quickly" | Files lack conversation context. Check for skills. |
