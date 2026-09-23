@@ -242,6 +242,40 @@ check_i4() {
   fi
 }
 
+check_i1() {
+  local file="$REPO_ROOT/skills/subagent-driven-development/task-reviewer-prompt.md"
+  local what="the slice reviewer template takes a list of briefs and a list of reports (one per task), says 'Review Slice N', and checks each task's brief against the diff"
+  local flat
+  flat="$(tr '\n' ' ' <"$file" | tr -s ' ')"
+  if grep -q 'description: "Review Slice N' <<<"$flat" \
+    && grep -q '\[BRIEF_FILES\]' <<<"$flat" \
+    && grep -q '\[REPORT_FILES\]' <<<"$flat" \
+    && grep -q 'bind this slice' <<<"$flat" \
+    && grep -q 'Check the diff against every task brief in the slice' <<<"$flat" \
+    && grep -q 'The implementers already ran the tests' <<<"$flat" \
+    && ! grep -q '\[BRIEF_FILE\]' <<<"$flat" \
+    && ! grep -q '\[REPORT_FILE\]' <<<"$flat"; then
+    pass I1 "$what"
+  else
+    fail I1 "$what"
+  fi
+}
+
+check_i2() {
+  local file="$REPO_ROOT/skills/requesting-code-review/code-reviewer.md"
+  local what="the mutation licence in code-reviewer.md is conditional on a FINAL_REVIEW marker only the final whole-branch review sets; every other dispatch stays read-only and reports a suspected uncaught mutation as a finding"
+  local flat
+  flat="$(tr '\n' ' ' <"$file" | tr -s ' ')"
+  if grep -q '\[FINAL_REVIEW\]' <<<"$flat" \
+    && grep -q 'leaves it unset, and stays read-only' <<<"$flat" \
+    && grep -q 'report a suspected uncaught mutation as a finding instead of making it' <<<"$flat" \
+    && grep -q 'When `\[FINAL_REVIEW\]` is set, you are the final reviewer' <<<"$flat"; then
+    pass I2 "$what"
+  else
+    fail I2 "$what"
+  fi
+}
+
 slice2() {
   check_req_5
   check_req_6
@@ -253,6 +287,8 @@ slice2() {
   check_req_8_3
   check_i3
   check_i4
+  check_i1
+  check_i2
 }
 
 slice3() {

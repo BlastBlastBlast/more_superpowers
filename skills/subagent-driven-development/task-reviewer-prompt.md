@@ -10,7 +10,7 @@ more, nothing less) and is well-built (clean, tested, maintainable)
 
 ```
 Subagent (general-purpose):
-  description: "Review Task N (spec + quality)"
+  description: "Review Slice N, tasks N.1-N.k (spec + quality)"
   model: [MODEL — REQUIRED: choose per SKILL.md Model Selection; an omitted
          model silently inherits the session's most expensive one]
   prompt: |
@@ -21,14 +21,15 @@ Subagent (general-purpose):
 
     ## What Was Requested
 
-    Read the task brief: [BRIEF_FILE]
+    Read each task brief in the slice: [BRIEF_FILES]
 
-    Global constraints from the spec/design that bind this task:
+    Global constraints from the spec/design that bind this slice:
     [GLOBAL_CONSTRAINTS]
 
     ## What the Implementer Claims They Built
 
-    Read the implementer's report: [REPORT_FILE]
+    Read each task's report in the slice (fix reports appended at the end
+    of each): [REPORT_FILES]
 
     ## Diff Under Review
 
@@ -76,7 +77,7 @@ Subagent (general-purpose):
 
     ## Tests
 
-    The implementer already ran the tests and reported results with TDD
+    The implementers already ran the tests and reported results with TDD
     evidence for exactly this code. Do not re-run the suite to confirm their
     report. Run a test only when reading the code raises a specific doubt
     that no existing run answers — and then a focused test, never a
@@ -111,6 +112,11 @@ Subagent (general-purpose):
     file must have its corresponding hunk. A listed file the diff never
     touches is a Missing finding, no matter how clean the rest of the
     batch looks.
+
+    Check the diff against every task brief in the slice, one by one: each
+    task's requirements must show up somewhere in the diff. A task whose
+    brief is not addressed anywhere in the diff is a Missing finding, no
+    matter how clean the rest of the slice looks.
 
     If a requirement cannot be verified from this diff alone (it lives in
     unchanged code or spans tasks), report it as a ⚠️ item instead of
@@ -193,15 +199,16 @@ Subagent (general-purpose):
 
 **Placeholders:**
 - `[MODEL]` — REQUIRED: reviewer model per SKILL.md Model Selection
-- `[BRIEF_FILE]` — REQUIRED: the task brief file (`scripts/task-brief PLAN N`
-  prints the path; same file the implementer worked from)
+- `[BRIEF_FILES]` — REQUIRED: the slice's task brief files, one per task
+  (`scripts/task-brief PLAN <slice>.<task>` prints each path; the same
+  files the implementers worked from)
 - `[GLOBAL_CONSTRAINTS]` — the binding requirements copied verbatim from
   the plan's Global Constraints section or the spec: exact values, formats,
   and stated relationships between components (not process rules — those
   are already in this template)
-- `[REPORT_FILE]` — REQUIRED: the file the implementer wrote its detailed
-  report to
-- `[BASE_SHA]` — commit before this task
+- `[REPORT_FILES]` — REQUIRED: the slice's task report files, one per task
+  (fix reports appended at the end of each)
+- `[BASE_SHA]` — commit before the slice (the recorded slice BASE)
 - `[HEAD_SHA]` — current commit
 - `[DIFF_FILE]` — REQUIRED: the path the controller wrote the review
   package to (`scripts/review-package PLAN_FILE BASE HEAD` prints the unique
