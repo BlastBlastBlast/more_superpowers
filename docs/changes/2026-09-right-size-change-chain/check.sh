@@ -291,8 +291,96 @@ slice2() {
   check_i2
 }
 
+check_req_1_1() {
+  local file="$REPO_ROOT/skills/writing-specs/SKILL.md"
+  local what="a rule requires every requirement to name its source, as a *Source:* line beside *Proof:*"
+  if grep -q 'Every requirement MUST name its source' "$file" \
+    && grep -q '\*Source:\*' "$file"; then
+    pass REQ-1.1 "$what"
+  else
+    fail REQ-1.1 "$what"
+  fi
+}
+
+check_req_1_2() {
+  local file="$REPO_ROOT/skills/writing-specs/SKILL.md"
+  local what="a rule limits requirements to observable behaviour; the prose actor in a repository is the file or skill, and observable behaviour is what it makes an agent do"
+  local flat
+  flat="$(tr '\n' ' ' <"$file" | tr -s ' ')"
+  if grep -q 'MUST state behaviour that a user, a caller or a respondent can observe' <<<"$flat" \
+    && grep -q 'the actor is the file or' <<<"$flat" \
+    && grep -q 'The observable behaviour is what that file or skill' <<<"$flat"; then
+    pass REQ-1.2 "$what"
+  else
+    fail REQ-1.2 "$what"
+  fi
+}
+
+check_req_1_3() {
+  local file="$REPO_ROOT/skills/writing-specs/SKILL.md"
+  local what="a sub-requirement is limited to a named edge case; an edge case the author finds goes to open questions, not a sub-requirement"
+  if grep -q 'A sub-requirement MUST cover an edge case that' "$file" \
+    && grep -q 'the intent or the interview named' "$file" \
+    && grep -q 'Open questions carried from intent' "$file"; then
+    pass REQ-1.3 "$what"
+  else
+    fail REQ-1.3 "$what"
+  fi
+}
+
+check_req_1_4() {
+  local file="$REPO_ROOT/skills/writing-specs/SKILL.md"
+  local what="the spec omits an empty optional section; the template marks Flagged concerns and Design notes optional and omitted when empty"
+  if grep -q 'Omit an optional section that has no content' "$file" \
+    && grep -q 'Flagged concerns and Design notes are optional' "$file" \
+    && grep -q 'Optional. Omit this section when it has no content' "$file"; then
+    pass REQ-1.4 "$what"
+  else
+    fail REQ-1.4 "$what"
+  fi
+}
+
+check_req_1_5() {
+  local file="$REPO_ROOT/skills/writing-specs/SKILL.md"
+  local what="the spec author reports the size as 'N requirements from M intent items', and the template's Summary shows the Size line"
+  if grep -q 'N requirements from M intent items' "$file" \
+    && grep -q 'Size: <N> requirements from <M> intent items' "$file"; then
+    pass REQ-1.5 "$what"
+  else
+    fail REQ-1.5 "$what"
+  fi
+}
+
+check_req_1_template() {
+  local file="$REPO_ROOT/skills/writing-specs/SKILL.md"
+  local what="the requirement template shows a *Source:* line beside the *Proof:* line"
+  local template
+  template="$(sed -n '/^```markdown$/,/^```$/p' "$file")"
+  if grep -q '\*Proof:' <<<"$template" && grep -q '\*Source:' <<<"$template"; then
+    pass REQ-1-template "$what"
+  else
+    fail REQ-1-template "$what"
+  fi
+}
+
+check_req_1_report() {
+  local file="$REPO_ROOT/skills/writing-specs/SKILL.md"
+  local what="Check It Before You Hand It Over asks whether every requirement names a source"
+  if grep -q 'Does every requirement name a source?' "$file"; then
+    pass REQ-1-report "$what"
+  else
+    fail REQ-1-report "$what"
+  fi
+}
+
 slice3() {
-  :
+  check_req_1_1
+  check_req_1_2
+  check_req_1_3
+  check_req_1_4
+  check_req_1_5
+  check_req_1_template
+  check_req_1_report
 }
 
 all() {

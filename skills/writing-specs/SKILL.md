@@ -47,11 +47,21 @@ empty section as a gap there teaches the reader to skip the section everywhere.
   requirement becomes `REQ-7: withdrawn` with the reason.
 - **Requirements nest.** `REQ-7` states the obligation. `REQ-7.1` and `REQ-7.2` state its
   parts. A sub-requirement carries its own keyword and never contradicts its parent.
+- **Name the source.** Every requirement MUST name its source: an outcome paragraph, a
+  constraint, a decision or an open question of the intent. Write it as a `*Source:*` line
+  beside the `*Proof:*` line.
 - **Name the actor.** "Input MUST be validated" hides who validates. Write "The handler MUST
   validate the request body". In a repository whose product is prose, the actor is the file or
-  the skill that carries the obligation.
+  the skill that carries the obligation. The observable behaviour is what that file or skill
+  makes an agent do.
+- **State observable behaviour only.** A requirement MUST state behaviour that a user, a
+  caller or a respondent can observe. Function names, SQL and file placement belong in the
+  plan.
 - **State what proves it.** If you cannot name what would show a requirement met, it is a
   goal. Move it to Non-goals.
+- **A sub-requirement covers a named edge.** A sub-requirement MUST cover an edge case that
+  the intent or the interview named. List an edge case you find yourself under
+  `## Open questions carried from intent`, not as a sub-requirement.
 - **SHOULD needs an escape condition.** A SHOULD with no stated reason to deviate becomes a
   MUST in practice. Give the condition, or promote the requirement.
 
@@ -61,6 +71,9 @@ interface, then operations.
 Aim for **fewer than about ten top-level requirements**, with detail as sub-requirements. The
 count is a signal, not a limit. A spec running past it usually means the change is two
 changes — say so rather than growing one. A spec that genuinely needs more states the reason.
+
+Omit an optional section that has no content. Flagged concerns and Design notes are optional.
+A heading with nothing under it is a gap dressed up as a section.
 
 ## Prose: ASD-STE100
 
@@ -89,6 +102,8 @@ Intent: `intent.md`. Date: <YYYY-MM-DD>. Status: draft.
 ## Summary
 <Three sentences. What this changes, for whom.>
 
+Size: <N> requirements from <M> intent items.
+
 ## Requirements
 
 ### Behavior
@@ -96,6 +111,7 @@ Intent: `intent.md`. Date: <YYYY-MM-DD>. Status: draft.
   - **REQ-1.1** The <actor> MUST <part of it>.
   - **REQ-1.2** The <actor> MUST NOT <the excluded case>.
   *Proof: <the test or check that shows REQ-1 met>.*
+  *Source: <the outcome paragraph, constraint, decision or open question this answers>.*
 
 ### Data
 **REQ-2** …
@@ -114,14 +130,14 @@ Intent: `intent.md`. Date: <YYYY-MM-DD>. Status: draft.
  and no policy skill, that belongs in Flagged concerns. When it has no domain, say so and stop.>
 
 ## Flagged concerns
-<Each one: the two rules that conflict, the options, and who owns the decision.
- Never resolve one silently.>
+<Optional. Omit this section when it has no content. Each one: the two rules that conflict,
+ the options, and who owns the decision. Never resolve one silently.>
 
 ## Open questions carried from intent
 <Answered here, or restated as still open with who will answer.>
 
 ## Design notes
-<How the change fits the existing system.>
+<Optional. Omit this section when it has no content. How the change fits the existing system.>
 ```
 
 ## Never Resolve A Conflict Quietly
@@ -151,6 +167,11 @@ Then read the spec back against the intent and answer these in your report:
 - Does every open question from `intent.md` appear as answered or explicitly carried forward?
 - Does the spec solve the stated problem, or a nearby problem that was easier?
 - Can you name a proof for every MUST?
+- Does every requirement name a source?
+
+Count the intent items: outcome paragraphs, constraints, decisions and open questions. Count
+the top-level requirements, not the sub-requirements. Report both counts in the form
+"N requirements from M intent items".
 
 ## The Approval Gate
 
