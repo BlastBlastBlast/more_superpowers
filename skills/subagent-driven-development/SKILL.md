@@ -5,11 +5,11 @@ description: Use when executing implementation plans with independent tasks in t
 
 # Subagent-Driven Development
 
-Execute plan by dispatching a fresh implementer subagent per task, a task review (spec compliance + code quality) after each, and a broad whole-branch review at the end.
+Execute plan by dispatching a fresh implementer subagent per task, running that task's test command after each, reviewing once per slice at its checkpoint (spec compliance + code quality), and a broad whole-branch review at the end.
 
 **Why subagents:** You delegate tasks to specialized agents with isolated context. By precisely crafting their instructions and context, you ensure they stay focused and succeed at their task. They should never inherit your session's context or history — you construct exactly what they need. This also preserves your own context for coordination work.
 
-**Core principle:** Fresh subagent per task + task review (spec + quality) + broad final review = high quality, fast iteration
+**Core principle:** Fresh subagent per task + task's test command after each task + one review per slice (spec + quality) + broad final review = high quality, fast iteration
 
 **Narration:** between tool calls, narrate at most one short line — the
 ledger and the tool results carry the record.
@@ -67,7 +67,7 @@ digraph when_to_use {
 **vs. Executing Plans (parallel session):**
 - Same session (no context switch)
 - Fresh subagent per task (no context pollution)
-- Review after each task (spec compliance + code quality), broad review at the end
+- The task's test command runs after each task; review once per slice (spec compliance + code quality), broad review at the end
 - Faster iteration (no human-in-loop between tasks)
 
 ## The Process
@@ -82,6 +82,16 @@ digraph process {
         "Implementer asks questions?" [shape=diamond];
         "Answer questions, provide context" [shape=box];
         "Implementer implements, tests, commits, self-reviews" [shape=box];
+        "Run the task's test command" [shape=box];
+        "Test command passes?" [shape=diamond];
+        "Append completion to ledger, mark todo complete" [shape=box];
+    }
+
+    subgraph cluster_per_slice {
+        label="Per Slice Checkpoint";
+        "Run the slice demonstration command" [shape=box];
+        "Slice one of an architectural change?" [shape=diamond];
+        "Dispatch slice review and show the demo in parallel; wait for both" [shape=box];
         "Generate review package, dispatch task reviewer (./task-reviewer-prompt.md)" [shape=box];
         "Spec ✅ and quality approved?" [shape=diamond];
         "Finding conflicts with plan text?" [shape=diamond];
@@ -94,11 +104,12 @@ digraph process {
         "Any load-bearing finding?" [shape=diamond];
         "Rule and continue; stop only if every path forward is a guess" [shape=box];
         "Park findings in ledger with rulings" [shape=box];
-        "Append completion to ledger, mark todo complete" [shape=box];
+        "Append slice completion to ledger, mark slice todo complete" [shape=box];
     }
 
     "Setup: worktree, ledger check, read plan, pre-flight review" [shape=box];
-    "More tasks remain?" [shape=diamond];
+    "More tasks in slice remain?" [shape=diamond];
+    "More slices remain?" [shape=diamond];
     "Dispatch final code reviewer (../requesting-code-review/code-reviewer.md)" [shape=box];
     "Final findings? ONE fix dispatch, one scoped re-review, adjudicate residuals" [shape=box];
     "Final review clean: delete this plan's workspace" [shape=box];
@@ -111,26 +122,36 @@ digraph process {
     "Implementer asks questions?" -> "Answer questions, provide context" [label="yes"];
     "Answer questions, provide context" -> "Implementer implements, tests, commits, self-reviews";
     "Implementer asks questions?" -> "Implementer implements, tests, commits, self-reviews" [label="no"];
-    "Implementer implements, tests, commits, self-reviews" -> "Generate review package, dispatch task reviewer (./task-reviewer-prompt.md)";
+    "Implementer implements, tests, commits, self-reviews" -> "Run the task's test command";
+    "Run the task's test command" -> "Test command passes?";
+    "Test command passes?" -> "Append completion to ledger, mark todo complete" [label="yes"];
+    "Test command passes?" -> "Dispatch implementer subagent (./implementer-prompt.md)" [label="no - send failure back to same implementer"];
+    "Append completion to ledger, mark todo complete" -> "More tasks in slice remain?";
+    "More tasks in slice remain?" -> "Dispatch implementer subagent (./implementer-prompt.md)" [label="yes"];
+    "More tasks in slice remain?" -> "Run the slice demonstration command" [label="no"];
+    "Run the slice demonstration command" -> "Slice one of an architectural change?";
+    "Slice one of an architectural change?" -> "Dispatch slice review and show the demo in parallel; wait for both" [label="yes - slice one"];
+    "Slice one of an architectural change?" -> "Generate review package, dispatch task reviewer (./task-reviewer-prompt.md)" [label="no"];
+    "Dispatch slice review and show the demo in parallel; wait for both" -> "Spec ✅ and quality approved?";
     "Generate review package, dispatch task reviewer (./task-reviewer-prompt.md)" -> "Spec ✅ and quality approved?";
-    "Spec ✅ and quality approved?" -> "Append completion to ledger, mark todo complete" [label="yes"];
+    "Spec ✅ and quality approved?" -> "Append slice completion to ledger, mark slice todo complete" [label="yes"];
     "Spec ✅ and quality approved?" -> "Finding conflicts with plan text?" [label="no"];
     "Finding conflicts with plan text?" -> "Rule on the conflict, ledger the ruling" [label="yes"];
     "Rule on the conflict, ledger the ruling" -> "Fix round R of 5: R≤3 resume implementer; R≥4 fresh implementer, more capable model";
     "Finding conflicts with plan text?" -> "Fix round R of 5: R≤3 resume implementer; R≥4 fresh implementer, more capable model" [label="no"];
     "Fix round R of 5: R≤3 resume implementer; R≥4 fresh implementer, more capable model" -> "Dispatch scoped re-review (./re-review-prompt.md)";
     "Dispatch scoped re-review (./re-review-prompt.md)" -> "All findings addressed?";
-    "All findings addressed?" -> "Append completion to ledger, mark todo complete" [label="yes"];
+    "All findings addressed?" -> "Append slice completion to ledger, mark slice todo complete" [label="yes"];
     "All findings addressed?" -> "R = 5?" [label="no"];
     "R = 5?" -> "Fix round R of 5: R≤3 resume implementer; R≥4 fresh implementer, more capable model" [label="no - next round"];
     "R = 5?" -> "Adjudicate each open finding" [label="yes - breaker trips"];
     "Adjudicate each open finding" -> "Any load-bearing finding?";
     "Any load-bearing finding?" -> "Rule and continue; stop only if every path forward is a guess" [label="yes"];
     "Any load-bearing finding?" -> "Park findings in ledger with rulings" [label="no"];
-    "Park findings in ledger with rulings" -> "Append completion to ledger, mark todo complete";
-    "Append completion to ledger, mark todo complete" -> "More tasks remain?";
-    "More tasks remain?" -> "Dispatch implementer subagent (./implementer-prompt.md)" [label="yes"];
-    "More tasks remain?" -> "Dispatch final code reviewer (../requesting-code-review/code-reviewer.md)" [label="no"];
+    "Park findings in ledger with rulings" -> "Append slice completion to ledger, mark slice todo complete";
+    "Append slice completion to ledger, mark slice todo complete" -> "More slices remain?";
+    "More slices remain?" -> "Dispatch implementer subagent (./implementer-prompt.md)" [label="yes"];
+    "More slices remain?" -> "Dispatch final code reviewer (../requesting-code-review/code-reviewer.md)" [label="no"];
     "Dispatch final code reviewer (../requesting-code-review/code-reviewer.md)" -> "Final findings? ONE fix dispatch, one scoped re-review, adjudicate residuals";
     "Final findings? ONE fix dispatch, one scoped re-review, adjudicate residuals" -> "Final review clean: delete this plan's workspace";
     "Final review clean: delete this plan's workspace" -> "spec.md exists?";
@@ -302,10 +323,12 @@ Their absence is a fact about the repository, not a reason to stop.
 ## The Task Loop
 
 **Stop after slice one of an architectural change.** When the plan came from a
-spec, complete slice one, run its demonstration command, show your human
-partner the output, and wait. That pause is the cheapest moment to learn the
-approach is wrong — everything after slice one costs more to undo. Once they
-approve the direction, the remaining slices run without pausing.
+spec, complete slice one and run its demonstration command. Dispatch slice
+one's reviewer over the range from the commit before slice one's first task
+to HEAD at the same time as you show your human partner the demo output —
+send both at once, and wait for both. That pause is the cheapest moment to
+learn the approach is wrong — everything after slice one costs more to undo.
+Once they approve the direction, the remaining slices run without pausing.
 
 A bounded change has no spec and does not stop. Run it to the end.
 
@@ -339,8 +362,11 @@ child is noticed within minutes, not at the end of the session.
 
 ### 1. Dispatch the implementer
 
-Record BASE (`git rev-parse HEAD`) before dispatching — the review package
-and fix-round diffs need it.
+Record a task BASE (`git rev-parse HEAD`) before dispatching every task — its
+fix-round diffs need it. Before the slice's first task, also record a slice
+BASE (`git rev-parse HEAD`) — the slice review package at the checkpoint
+covers every commit from this slice BASE to HEAD, so record it once, before
+that first task, and carry it forward to the slice checkpoint.
 
 - **Task brief:** before dispatching an implementer, run this skill's
   `scripts/task-brief PLAN_FILE N` — it extracts the task's full text to a
@@ -389,7 +415,7 @@ Template: [implementer-prompt.md](implementer-prompt.md)
 
 Implementer subagents report one of four statuses. Handle each appropriately:
 
-**DONE:** Generate the review package (`scripts/review-package PLAN_FILE BASE HEAD`, from this skill's directory — it prints the unique file path it wrote; BASE is the commit you recorded before dispatching the implementer — never `HEAD~1`, which silently drops all but the last commit of a multi-commit task), then dispatch the task reviewer with the printed path.
+**DONE:** Run the task's test command (from the brief's Test command field) and read only the result: pass or fail — no reviewer runs per task; the slice reviewer at the checkpoint covers this task's diff. On pass, append the task's completion line to the ledger and mark its todo complete. On fail, send the failure back to the same implementer (the agent identity you recorded at dispatch) with the test output, and wait for its fix before moving on.
 
 **DONE_WITH_CONCERNS:** The implementer completed the work but flagged doubts. Read the concerns before proceeding. If the concerns are about correctness or scope, address them before review. If they're observations (e.g., "this file is getting large"), note them and proceed to review.
 
@@ -407,26 +433,27 @@ If the implementer asks questions — before starting or mid-task — answer
 clearly and completely, provide additional context if needed, and don't
 rush it into implementation.
 
-### 3. Review the task
+### 3. Review the slice
 
-Per-task reviews are task-scoped gates. The broad review happens once, at the
-final whole-branch review. Never skip the task review, and never accept a
+Slice reviews are slice-scoped gates, run once at the slice checkpoint after
+every task in the slice is complete. The broad review happens once, at the
+final whole-branch review. Never skip the slice review, and never accept a
 report missing either verdict — spec compliance AND task quality are both
-required. Implementer self-review never replaces the task review; both are
+required. Implementer self-review never replaces the slice review; both are
 needed.
 
 - Hand the reviewer its diff as a file: run this skill's
-  `scripts/review-package PLAN_FILE BASE HEAD` and pass the reviewer the file path
-  it prints (or, without bash: `git log --oneline`, `git diff --stat`,
-  and `git diff -U10` for the range, redirected to one uniquely named
-  file). The output never enters your own context, and the reviewer sees
-  the commit list, stat summary, and full diff with context in one Read
-  call. Use the BASE you recorded before dispatching the implementer —
-  never `HEAD~1`, which silently truncates multi-commit tasks. Never
-  dispatch a task reviewer without a diff file.
-- **Reviewer inputs:** the task reviewer gets three paths — the same brief
-  file, the report file, and the review package — plus the global
-  constraints that bind the task.
+  `scripts/review-package PLAN_FILE SLICE_BASE HEAD` and pass the reviewer
+  the file path it prints (or, without bash: `git log --oneline`,
+  `git diff --stat`, and `git diff -U10` for the range, redirected to one
+  uniquely named file). The output never enters your own context, and the
+  reviewer sees the commit list, stat summary, and full diff with context in
+  one Read call. Use the slice BASE you recorded before dispatching the
+  slice's first task — never `HEAD~1`, which silently truncates every task
+  but the last. Never dispatch a slice reviewer without a diff file.
+- **Reviewer inputs:** the slice reviewer gets every task brief and report
+  file from this slice, plus the one review package built from the slice
+  BASE — and the global constraints that bind the slice.
 - The global-constraints block you hand the reviewer is its attention
   lens. Copy the binding requirements verbatim from the plan's Global
   Constraints section or the spec: exact values, exact formats, and the
@@ -436,17 +463,17 @@ needed.
   project's spec demands.
 - Do not add open-ended directives like "check all uses" or "run race tests
   if useful" without a concrete, task-specific reason
-- Do not ask a reviewer to re-run tests the implementer already ran on the
-  same code — the implementer's report carries the test evidence
+- Do not ask a reviewer to re-run tests the implementers already ran on the
+  same code — the implementer reports carry the test evidence
 - Do not pre-judge findings for the reviewer — never instruct a reviewer to
   ignore or not flag a specific issue. If you believe a finding would be a
   false positive, let the reviewer raise it and adjudicate it in the review
   loop. If the prompt you are writing contains "do not flag," "don't treat X
   as a defect," "at most Minor," or "the plan chose" — stop: you are
   pre-judging, usually to spare yourself a review loop.
-The task reviewer may report "⚠️ Cannot verify from diff" items — requirements
+The slice reviewer may report "⚠️ Cannot verify from diff" items — requirements
 that live in unchanged code or span tasks. These do not block the rest of the
-review, but you must resolve each one yourself before marking the task
+review, but you must resolve each one yourself before marking the slice
 complete: you hold the plan and cross-task context the reviewer
 lacks. If you confirm an item is a real gap, treat it as a failed spec
 review — it enters the fix loop with the other findings.

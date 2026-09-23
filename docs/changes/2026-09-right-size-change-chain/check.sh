@@ -86,8 +86,47 @@ slice1() {
   check_req_4_2
 }
 
+check_req_5() {
+  local sdd="$REPO_ROOT/skills/subagent-driven-development/SKILL.md"
+  local ep="$REPO_ROOT/skills/executing-plans/SKILL.md"
+  local what="per-task cluster has no reviewer node; the session runs the task's test command after each task and sends a failure back to the same implementer; executing-plans runs a slice's tasks in order with tests after each"
+  local per_task_cluster
+  per_task_cluster="$(sed -n '/subgraph cluster_per_task {/,/^    }/p' "$sdd")"
+  if ! grep -qi 'reviewer' <<<"$per_task_cluster" \
+    && grep -q "Run the task's test command" "$sdd" \
+    && grep -q 'send failure back to same implementer' "$sdd" \
+    && grep -q 'no reviewer runs per task' "$sdd" \
+    && grep -q "Run a slice's tasks in order" "$ep" \
+    && grep -q 'tests when it ends' "$ep"; then
+    pass REQ-5 "$what"
+  else
+    fail REQ-5 "$what"
+  fi
+}
+
+check_req_6() {
+  local sdd="$REPO_ROOT/skills/subagent-driven-development/SKILL.md"
+  local what="slice checkpoint runs the demo then dispatches one slice reviewer over the range from the commit before the slice's first task; slice one's review is dispatched alongside the human demo; Final Review is unchanged"
+  local per_slice_cluster
+  per_slice_cluster="$(sed -n '/subgraph cluster_per_slice {/,/^    }/p' "$sdd")"
+  if grep -q 'Run the slice demonstration command' <<<"$per_slice_cluster" \
+    && grep -q 'dispatch task reviewer' <<<"$per_slice_cluster" \
+    && grep -q 'also record a slice' "$sdd" \
+    && grep -q "slice's first task" "$sdd" \
+    && grep -q 'at the same time as you show your human partner the demo output' "$sdd" \
+    && grep -q 'wait for both' "$sdd" \
+    && (cd "$REPO_ROOT" && git diff --quiet main -- skills/subagent-driven-development/SKILL.md \
+        || diff <(git show main:skills/subagent-driven-development/SKILL.md | awk '/^## Final Review$/,/^## Finish$/') \
+                <(awk '/^## Final Review$/,/^## Finish$/' skills/subagent-driven-development/SKILL.md) >/dev/null); then
+    pass REQ-6 "$what"
+  else
+    fail REQ-6 "$what"
+  fi
+}
+
 slice2() {
-  :
+  check_req_5
+  check_req_6
 }
 
 slice3() {
