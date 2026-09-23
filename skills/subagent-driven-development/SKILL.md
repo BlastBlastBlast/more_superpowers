@@ -187,8 +187,9 @@ a ledger file, not only in todos.
   line names your plan file, a task with a `Task <slice>.<task>: complete`
   line is DONE — do not re-dispatch it; resume at the first task without
   one. A slice whose tasks are all complete and that has no
-  `Slice <N>: complete` line resumes at its slice review — or, when its
-  last line is a fix round, at the next fix round. A ledger whose first
+  `Slice <N>: complete` line resumes at its slice review — reading
+  SLICE_BASE from that slice's `Slice <N>: base <sha7>` ledger line — or,
+  when its last line is a fix round, at the next fix round. A ledger whose first
   line names a different plan file — or a stray ledger at the old flat
   path `.superpowers/sdd/progress.md` — is another plan's progress: leave
   it in place and start your own, fresh.
@@ -371,9 +372,12 @@ child is noticed within minutes, not at the end of the session.
 
 Record a task BASE (`git rev-parse HEAD`) before dispatching every task — its
 fix-round diffs need it. Before the slice's first task, also record a slice
-BASE (`git rev-parse HEAD`) — the slice review package at the checkpoint
-covers every commit from this slice BASE to HEAD, so record it once, before
-that first task, and carry it forward to the slice checkpoint.
+BASE (`git rev-parse HEAD`) and append `Slice <N>: base <sha7>` to the
+ledger — the slice review package at the checkpoint covers every commit
+from this slice BASE to HEAD, so record and ledger it once, before that
+first task. Carry it forward in context to the slice checkpoint; a session
+that resumes after compaction reads SLICE_BASE from that ledger line
+instead.
 
 - **Task brief:** before dispatching an implementer, run this skill's
   `scripts/task-brief PLAN_FILE N` — it extracts the task's full text to a
@@ -422,9 +426,9 @@ Template: [implementer-prompt.md](implementer-prompt.md)
 
 Implementer subagents report one of four statuses. Handle each appropriately:
 
-**DONE:** Run the task's test command (from the brief's Test command field) and read only the result: pass or fail — no reviewer runs per task; the slice reviewer at the checkpoint covers this task's diff. On pass, append `Task <slice>.<task>: complete (commits <a7>..<b7>, tests pass)` to the ledger and mark its todo complete. On fail, send the failure back to the same implementer (the agent identity you recorded at dispatch) with the test output, and wait for its fix before moving on.
+**DONE:** Run the task's test command (from the brief's Test command field) and read only the result: pass or fail — no reviewer runs per task; the slice reviewer at the checkpoint covers this task's diff. On pass, append `Task <slice>.<task>: complete (commits <base7>..<head7>, tests pass)` to the ledger and mark its todo complete. On fail, send the failure back to the same implementer (the agent identity you recorded at dispatch) with the test output, and wait for its fix before moving on.
 
-**DONE_WITH_CONCERNS:** The implementer completed the work but flagged doubts. Read the concerns before proceeding. If the concerns are about correctness or scope, address them before review. If they're observations (e.g., "this file is getting large"), note them and proceed to review.
+**DONE_WITH_CONCERNS:** The implementer completed the work but flagged doubts. Read the concerns before proceeding. If the concerns are about correctness or scope, address them, then handle it as DONE: run the task's test command and append the completion line. If they're observations (e.g., "this file is getting large"), note them in the ledger for the slice reviewer, then handle it as DONE.
 
 **NEEDS_CONTEXT:** The implementer needs information that wasn't provided. Provide the missing context and re-dispatch.
 
@@ -456,8 +460,10 @@ needed.
   uniquely named file). The output never enters your own context, and the
   reviewer sees the commit list, stat summary, and full diff with context in
   one Read call. Use the slice BASE you recorded before dispatching the
-  slice's first task — never `HEAD~1`, which silently truncates every task
-  but the last. Never dispatch a slice reviewer without a diff file.
+  slice's first task — on resume, read it from the `Slice <N>: base <sha7>`
+  ledger line instead of from context — never `HEAD~1`, which silently
+  truncates every task but the last. Never dispatch a slice reviewer
+  without a diff file.
 - **Reviewer inputs:** the slice reviewer gets every task brief and report
   file from this slice, plus the one review package built from the slice
   BASE — and the global constraints that bind the slice.
@@ -550,7 +556,7 @@ the open findings list. Out-of-scope observations go to the ledger as
 deferred minors — they never extend the loop.
 
 **After each round,** append to the ledger:
-`Slice <N>: fix round <R>/2 (<X> addressed, <Y> open — <finding one-liners>; commits <a7>..<b7>)`
+`Slice <N>: fix round <R>/2 (<X> addressed, <Y> open — <finding one-liners>; commits <base7>..<head7>)`
 
 Never fix findings yourself in the controller session — your context stays
 clean for coordination, and controller fixes skip review.
@@ -583,8 +589,8 @@ When the slice review comes back clean — or every open finding is parked
 with a ruling at the cap — append the slice completion line to the ledger
 in the same message as your other bookkeeping:
 
-- `Slice <N>: complete (commits <a7>..<b7>, review clean)`
-- `Slice <N>: complete (commits <a7>..<b7>, <K> parked)` after a tripped
+- `Slice <N>: complete (commits <base7>..<head7>, review clean)`
+- `Slice <N>: complete (commits <base7>..<head7>, <K> parked)` after a tripped
   breaker
 
 Then mark the slice's todo complete and move on. Never move to the next

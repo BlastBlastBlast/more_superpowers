@@ -210,6 +210,38 @@ check_req_8_3() {
   fi
 }
 
+check_i3() {
+  local sdd="$REPO_ROOT/skills/subagent-driven-development/SKILL.md"
+  local what="DONE_WITH_CONCERNS runs the task's test command and appends the completion line (handled as DONE), instead of routing to a per-task review that no longer exists"
+  local done_concerns
+  done_concerns="$(grep '^\*\*DONE_WITH_CONCERNS:\*\*' "$sdd" || true)"
+  if grep -q 'handle it as DONE' <<<"$done_concerns" \
+    && ! grep -q 'proceed to review' <<<"$done_concerns" \
+    && ! grep -q 'before review' <<<"$done_concerns"; then
+    pass I3 "$what"
+  else
+    fail I3 "$what"
+  fi
+}
+
+check_i4() {
+  local sdd="$REPO_ROOT/skills/subagent-driven-development/SKILL.md"
+  local what="the slice BASE is ledgered ('Slice <N>: base <sha7>') when recorded, the Setup resume rule and the review-package step read it from that ledger line, and the completion formats name <base7>..<head7> again"
+  local flat
+  flat="$(tr '\n' ' ' <"$sdd" | tr -s ' ')"
+  if grep -q "append \`Slice <N>: base <sha7>\` to the" <<<"$flat" \
+    && grep -q "reading SLICE_BASE from that slice's \`Slice <N>: base <sha7>\` ledger line" <<<"$flat" \
+    && grep -q "on resume, read it from the \`Slice <N>: base <sha7>\` ledger line" <<<"$flat" \
+    && grep -q 'Task <slice>.<task>: complete (commits <base7>..<head7>, tests pass)' <<<"$flat" \
+    && grep -q 'Slice <N>: fix round <R>/2 (<X> addressed, <Y> open — <finding one-liners>; commits <base7>..<head7>)' <<<"$flat" \
+    && grep -q 'Slice <N>: complete (commits <base7>..<head7>, review clean)' <<<"$flat" \
+    && ! grep -q 'commits <a7>..<b7>' <<<"$flat"; then
+    pass I4 "$what"
+  else
+    fail I4 "$what"
+  fi
+}
+
 slice2() {
   check_req_5
   check_req_6
@@ -219,6 +251,8 @@ slice2() {
   check_req_8_1
   check_req_8_2
   check_req_8_3
+  check_i3
+  check_i4
 }
 
 slice3() {
