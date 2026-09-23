@@ -1,6 +1,6 @@
 # Spec: right-size the change chain
 
-Intent: `intent.md`. Date: 2026-09-23. Status: draft.
+Intent: `intent.md`. Date: 2026-09-23. Status: approved.
 
 ## Summary
 
@@ -186,6 +186,7 @@ only three docstring edits.
   fixes (`sdd-re-review-scoped`).
 - Option B: keep the row and withdraw REQ-7.4. Cost: every trivial fix keeps its re-review.
 - Recommendation: option A. Owner: Lars.
+- **Ruling (Lars, 2026-09-23): option A.**
 
 **F2. Five eval scenarios encode the 5-round loop.** `sdd-round4-escalates-model`,
 `sdd-breaker-adjudicates-at-cap`, `sdd-breaker-rules-and-continues`,
@@ -196,6 +197,7 @@ scenarios live in the upstream `superpowers-evals` repository, outside this fork
 - Option B: add fork copies of the scenarios with a 2-round cap to the eval clone. Cost: a second
   set of scenarios to keep in step with upstream.
 - Recommendation: option A for this pull request. Owner: Lars.
+- **Ruling (Lars, 2026-09-23): option A.**
 
 ## Open questions carried from intent
 
