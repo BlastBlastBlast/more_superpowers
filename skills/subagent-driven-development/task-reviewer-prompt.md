@@ -1,10 +1,11 @@
 # Task Reviewer Prompt Template
 
 Use this template when dispatching a task reviewer subagent. The reviewer
-reads the task's diff once and returns two verdicts: spec compliance and
-code quality.
+reviews a slice — one or more tasks — reading every task brief and report
+of the slice plus one review package from the slice's base commit, and
+returns two verdicts: spec compliance and code quality.
 
-**Purpose:** Verify one task's implementation matches its requirements (nothing
+**Purpose:** Verify a slice's implementation matches its requirements (nothing
 more, nothing less) and is well-built (clean, tested, maintainable)
 
 ```
@@ -13,10 +14,10 @@ Subagent (general-purpose):
   model: [MODEL — REQUIRED: choose per SKILL.md Model Selection; an omitted
          model silently inherits the session's most expensive one]
   prompt: |
-    You are reviewing one task's implementation: first whether it matches its
-    requirements, then whether it is well-built. This is a task-scoped gate,
-    not a merge review — a broad whole-branch review happens separately after
-    all tasks are complete.
+    You are reviewing one slice's implementation — one or more tasks: first
+    whether it matches its requirements, then whether it is well-built. This
+    is a slice-scoped gate, not a merge review — a broad whole-branch review
+    happens separately after all tasks are complete.
 
     ## What Was Requested
 
@@ -50,7 +51,10 @@ Subagent (general-purpose):
     checking the call sites is the right method.
 
     Your review is read-only on this checkout. Do not mutate the working
-    tree, the index, HEAD, or branch state in any way.
+    tree, the index, HEAD, or branch state in any way — not even to test
+    whether a suspected defect is actually uncaught. If you suspect a
+    mutation that no test would catch, report it as a finding instead of
+    making it.
 
     ## You Do Not Dispatch Subagents
 

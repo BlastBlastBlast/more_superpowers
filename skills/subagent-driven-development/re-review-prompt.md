@@ -41,7 +41,10 @@ Subagent (general-purpose):
     `git diff [FIX_BASE_SHA]..[HEAD_SHA]`.
 
     Your review is read-only on this checkout. Do not mutate the working
-    tree, the index, HEAD, or branch state in any way.
+    tree, the index, HEAD, or branch state in any way — not even to test
+    whether a suspected defect is actually uncaught. If you suspect a
+    mutation that no test would catch, report it as a finding instead of
+    making it.
 
     ## You Do Not Dispatch Subagents
 

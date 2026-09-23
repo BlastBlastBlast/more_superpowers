@@ -170,12 +170,55 @@ check_f1() {
   fi
 }
 
+check_req_8_1() {
+  local file="$REPO_ROOT/skills/requesting-code-review/code-reviewer.md"
+  local what="code-reviewer.md allows mutations only in a temporary worktree, and says to remove it afterwards"
+  if grep -q 'only reviewer who may make a real code mutation' "$file" \
+    && grep -q 'separate temporary worktree' "$file" \
+    && grep -q 'git worktree remove' "$file" \
+    && grep -q 'never move HEAD or touch the working tree on this checkout' "$file"; then
+    pass REQ-8.1 "$what"
+  else
+    fail REQ-8.1 "$what"
+  fi
+}
+
+check_req_8_2() {
+  local trp="$REPO_ROOT/skills/subagent-driven-development/task-reviewer-prompt.md"
+  local rrp="$REPO_ROOT/skills/subagent-driven-development/re-review-prompt.md"
+  local what="task reviewer prompt and re-review prompt forbid mutation, tell the reviewer to report a suspected uncaught mutation as a finding; task reviewer prompt says it reviews a slice"
+  local trp_flat rrp_flat
+  trp_flat="$(tr '\n' ' ' <"$trp" | tr -s ' ')"
+  rrp_flat="$(tr '\n' ' ' <"$rrp" | tr -s ' ')"
+  if grep -q 'not even to test whether a suspected defect is actually uncaught' <<<"$trp_flat" \
+    && grep -q 'report it as a finding instead of making it' <<<"$trp_flat" \
+    && grep -q 'reviews a slice' <<<"$trp_flat" \
+    && grep -q 'not even to test whether a suspected defect is actually uncaught' <<<"$rrp_flat" \
+    && grep -q 'report it as a finding instead of making it' <<<"$rrp_flat"; then
+    pass REQ-8.2 "$what"
+  else
+    fail REQ-8.2 "$what"
+  fi
+}
+
+check_req_8_3() {
+  local what="writing-good-tests.md is unchanged from main"
+  if (cd "$REPO_ROOT" && git diff --quiet main -- skills/test-driven-development/writing-good-tests.md); then
+    pass REQ-8.3 "$what"
+  else
+    fail REQ-8.3 "$what"
+  fi
+}
+
 slice2() {
   check_req_5
   check_req_6
   check_req_7
   check_req_9_3
   check_f1
+  check_req_8_1
+  check_req_8_2
+  check_req_8_3
 }
 
 slice3() {
