@@ -153,11 +153,11 @@ rounds.
 
 ### Operations
 
-**REQ-10** The pull request MUST carry eval evidence from before and after the change.
-  - **REQ-10.1** The evidence MUST cover every scenario named in a proof line of this spec, and
-    `bun run quorum check`.
-  - **REQ-10.2** For each scenario that goes from pass to fail, the evidence MUST say whether the
-    scenario holds behaviour this change removes on purpose, or the change broke it.
+**REQ-10** The pull request MUST carry static eval evidence from before and after the change.
+  - **REQ-10.1** The evidence MUST give `bun run quorum check` before and after, and the result of
+    `check.sh all`. It MUST name every scenario in scope and state that no live run took place.
+  - **REQ-10.2** For each scenario in scope, the evidence MUST give the expected outcome and its
+    classification if it flips: removed on purpose, or broke.
   *Proof: `eval-baseline.md` and `eval-after.md` in this change record.*
   *Source: Constraints.*
 
@@ -255,3 +255,7 @@ scenarios live in the upstream `superpowers-evals` repository, outside this fork
   reviewer next to an implementer, so the working tree is safe without a separate worktree. The
   session checks the tree after each review and restores what a review left behind. Ruling: the
   spec was wrong (Lars).
+- REQ-10, second pass: Lars waived the live eval runs. The upstream project publishes the Docker base
+  image for `linux/amd64` only, and the run needs emulation and an API key file on this machine. REQ-10 now
+  asks for the static evidence that exists. This departs from the fork `CLAUDE.md` rule that a
+  behaviour change carries live eval evidence. Ruling: the spec was wrong (Lars, reversing V1).

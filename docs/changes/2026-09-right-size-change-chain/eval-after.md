@@ -10,7 +10,8 @@ Before: 96 `ok` lines, exit 0. After: 96 `ok` lines, exit 0. No line changed.
 
 No live scenario ran for this change. `quorum run` stops on macOS at preflight with "host stats
 probe requires the Linux appliance (got darwin)". Live runs need the Docker runtime and an Anthropic
-API key, which Lars owns. **This table records no observed live result.** The "Expected" column is
+API key. **Lars waived the live runs on 2026-09-23. This table records no observed live
+result.** The "Expected" column is
 a prediction from the spec, not evidence.
 
 | Scenario | Before | After | Expected | Classification if it flips |
@@ -34,12 +35,13 @@ a prediction from the spec, not evidence.
 ## What stands in for live evidence
 
 `docs/changes/2026-09-right-size-change-chain/check.sh all` turns each spec proof line into a pass
-or fail check: 24 checks, all PASS, exit 0 at `2b8d1b5`. Each check went from FAIL to PASS in its task
+or fail check: 29 checks, all PASS, exit 0 at the branch head. Each check went from FAIL to PASS in its task
 (reports under the SDD workspace). The check proves that the skill text says what the spec
 requires. It does not prove that an agent reading the text behaves that way. Only the live
 scenarios prove that.
 
-## To finish REQ-10
+## Waiver
 
-Run the eleven scenarios twice in the Docker runtime: once with `SUPERPOWERS_ROOT` at a worktree
-of `c4a3d9f`, once at `2b8d1b5` or later. Replace the Before and After columns with the verdicts.
+Lars waived the live runs for this change on 2026-09-23 (spec REQ-10, second pass). To run them
+later, run the scenarios above twice in the Docker runtime, with `DOCKER_DEFAULT_PLATFORM=linux/amd64`
+on an Apple Silicon host: once against commit `c4a3d9f`, once against the merged result.
