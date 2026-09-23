@@ -106,18 +106,20 @@ check_req_5() {
 
 check_req_6() {
   local sdd="$REPO_ROOT/skills/subagent-driven-development/SKILL.md"
-  local what="slice checkpoint runs the demo then dispatches one slice reviewer over the range from the commit before the slice's first task; slice one's review is dispatched alongside the human demo; Final Review is unchanged"
-  local per_slice_cluster
+  local what="slice checkpoint runs the demo then dispatches one slice reviewer over the range from the commit before the slice's first task; slice one's review is dispatched alongside the human demo; Final Review still uses the most capable model, ONE fix dispatch and one scoped re-review (REQ-6.4), and sets [FINAL_REVIEW] in its code-reviewer dispatch"
+  local per_slice_cluster final_review_section
   per_slice_cluster="$(sed -n '/subgraph cluster_per_slice {/,/^    }/p' "$sdd")"
+  final_review_section="$(awk '/^## Final Review$/,/^## Finish$/' "$sdd" | tr '\n' ' ' | tr -s ' ')"
   if grep -q 'Run the slice demonstration command' <<<"$per_slice_cluster" \
     && grep -q 'dispatch task reviewer' <<<"$per_slice_cluster" \
     && grep -q 'also record a slice' "$sdd" \
     && grep -q "slice's first task" "$sdd" \
     && grep -q 'at the same time as you show your human partner the demo output' "$sdd" \
     && grep -q 'wait for both' "$sdd" \
-    && (cd "$REPO_ROOT" && git diff --quiet main -- skills/subagent-driven-development/SKILL.md \
-        || diff <(git show main:skills/subagent-driven-development/SKILL.md | awk '/^## Final Review$/,/^## Finish$/') \
-                <(awk '/^## Final Review$/,/^## Finish$/' skills/subagent-driven-development/SKILL.md) >/dev/null); then
+    && grep -q 'most capable available model' <<<"$final_review_section" \
+    && grep -q 'dispatch ONE fix subagent' <<<"$final_review_section" \
+    && grep -q 'exactly one scoped re-review' <<<"$final_review_section" \
+    && grep -q 'Set `\[FINAL_REVIEW\]` in that dispatch' <<<"$final_review_section"; then
     pass REQ-6 "$what"
   else
     fail REQ-6 "$what"
@@ -291,6 +293,64 @@ slice2() {
   check_i2
 }
 
+# --- Final whole-branch review fixes (final-review.md Important findings) ---
+
+check_final_flatplan() {
+  local sdd="$REPO_ROOT/skills/subagent-driven-development/SKILL.md"
+  local what="a plan with no ### Slice headings runs each task as its own slice: its own test run, its own slice review, its own Slice <N> ledger lines"
+  if grep -q 'no `### Slice` headings runs each task as its own slice' "$sdd" \
+    && grep -q 'its own test run, its own slice review, and its own `Slice <N>` ledger' "$sdd"; then
+    pass I1-final "$what"
+  else
+    fail I1-final "$what"
+  fi
+}
+
+check_final_model_task() {
+  local sdd="$REPO_ROOT/skills/subagent-driven-development/SKILL.md"
+  local what="Model Selection reads the model from the task (REQ-3.5, matches writing-plans), not the slice"
+  if grep -q 'Read the model from the task' "$sdd" \
+    && grep -q 'names a model for every task a subagent' "$sdd" \
+    && ! grep -q 'Read the model from the slice' "$sdd"; then
+    pass I4-final "$what"
+  else
+    fail I4-final "$what"
+  fi
+}
+
+check_final_review_mandate() {
+  local file="$REPO_ROOT/skills/requesting-code-review/SKILL.md"
+  local what="review is mandatory after each SDD slice and at its final review (not after each task); [FINAL_REVIEW] is in the placeholder list"
+  if grep -q 'After each slice in subagent-driven development' "$file" \
+    && ! grep -q 'After each task in subagent-driven development' "$file" \
+    && grep -q '\[FINAL_REVIEW\]' "$file"; then
+    pass I5-final "$what"
+  else
+    fail I5-final "$what"
+  fi
+}
+
+check_final_evalafter() {
+  local file="$REPO_ROOT/docs/changes/2026-09-right-size-change-chain/eval-after.md"
+  local what="sdd-svelte-todo's per-task-review criterion is classified as removed on purpose (REQ-5); the four other per-task-review scenarios carry the same classification"
+  if grep -q 'removed on purpose: REQ-5' "$file" \
+    && grep -q 'sdd-quality-reviewer-catches-planted-defect' "$file" \
+    && grep -q 'sdd-survives-compaction' "$file" \
+    && grep -q 'sdd-escalates-broken-plan' "$file" \
+    && grep -q 'sdd-rejects-extra-features' "$file"; then
+    pass I2-final "$what"
+  else
+    fail I2-final "$what"
+  fi
+}
+
+finalreview() {
+  check_final_flatplan
+  check_final_model_task
+  check_final_review_mandate
+  check_final_evalafter
+}
+
 check_req_1_1() {
   local file="$REPO_ROOT/skills/writing-specs/SKILL.md"
   local what="a rule requires every requirement to name its source, as a *Source:* line beside *Proof:*"
@@ -387,15 +447,16 @@ all() {
   slice1
   slice2
   slice3
+  finalreview
 }
 
 group="${1:-}"
 case "$group" in
-  slice1|slice2|slice3|all)
+  slice1|slice2|slice3|finalreview|all)
     "$group"
     ;;
   *)
-    echo "usage: check.sh {slice1|slice2|slice3|all}" >&2
+    echo "usage: check.sh {slice1|slice2|slice3|finalreview|all}" >&2
     exit 2
     ;;
 esac

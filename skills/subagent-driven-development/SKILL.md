@@ -153,6 +153,7 @@ digraph process {
     "Adjudicate each open finding" -> "Any load-bearing finding?";
     "Any load-bearing finding?" -> "Rule and continue; stop only if every path forward is a guess" [label="yes"];
     "Any load-bearing finding?" -> "Park findings in ledger with rulings" [label="no"];
+    "Rule and continue; stop only if every path forward is a guess" -> "Append slice completion to ledger, mark slice todo complete";
     "Park findings in ledger with rulings" -> "Append slice completion to ledger, mark slice todo complete";
     "Append slice completion to ledger, mark slice todo complete" -> "More slices remain?";
     "More slices remain?" -> "Dispatch implementer subagent (./implementer-prompt.md)" [label="yes"];
@@ -189,7 +190,8 @@ a ledger file, not only in todos.
   one. A slice whose tasks are all complete and that has no
   `Slice <N>: complete` line resumes at its slice review — reading
   SLICE_BASE from that slice's `Slice <N>: base <sha7>` ledger line — or,
-  when its last line is a fix round, at the next fix round. A ledger whose first
+  when its last line is a fix round, at the next fix round — or at the
+  breaker after round 2/2. A ledger whose first
   line names a different plan file — or a stray ledger at the old flat
   path `.superpowers/sdd/progress.md` — is another plan's progress: leave
   it in place and start your own, fresh.
@@ -202,7 +204,7 @@ a ledger file, not only in todos.
   that happens, recover from `git log`.
 
 Read the plan once, note its context and Global Constraints, and create a
-todo per task. If the plan names a Spec, read that too: the spec is the
+todo per task and one per slice. If the plan names a Spec, read that too: the spec is the
 authority the plan argues from, and conflicts inside the plan resolve
 against it. A plan with no reachable spec gets a ledger note saying so —
 rulings made without one are provisional.
@@ -231,8 +233,8 @@ implementation.
 
 ## Model Selection
 
-**The plan decides. Read the model from the slice.** A plan written by
-`superpowers:writing-plans` names a model for every slice a subagent
+**The plan decides. Read the model from the task.** A plan written by
+`superpowers:writing-plans` names a model for every task a subagent
 implements. Use it. When you dispatch on a different model than the plan named,
 say so out loud and give the reason — a silent substitution makes the plan a
 lie and hides a cost from your human partner.
@@ -330,6 +332,10 @@ Their absence is a fact about the repository, not a reason to stop.
 
 ## The Task Loop
 
+A plan with no `### Slice` headings runs each task as its own slice: it gets
+its own test run, its own slice review, and its own `Slice <N>` ledger
+lines.
+
 **Stop after slice one of an architectural change.** When the plan came from a
 spec, complete slice one and run its demonstration command. Dispatch slice
 one's reviewer over the range from the commit before slice one's first task
@@ -370,8 +376,9 @@ child is noticed within minutes, not at the end of the session.
 
 ### 1. Dispatch the implementer
 
-Record a task BASE (`git rev-parse HEAD`) before dispatching every task — its
-fix-round diffs need it. Before the slice's first task, also record a slice
+Record a task BASE (`git rev-parse HEAD`) before dispatching every task — it
+feeds only that task's ledger completion range; fix rounds are per slice and
+use FIX_BASE (see The fix loop). Before the slice's first task, also record a slice
 BASE (`git rev-parse HEAD`) and append `Slice <N>: base <sha7>` to the
 ledger — the slice review package at the checkpoint covers every commit
 from this slice BASE to HEAD, so record and ledger it once, before that
@@ -380,7 +387,7 @@ that resumes after compaction reads SLICE_BASE from that ledger line
 instead.
 
 - **Task brief:** before dispatching an implementer, run this skill's
-  `scripts/task-brief PLAN_FILE N` — it extracts the task's full text to a
+  `scripts/task-brief PLAN_FILE <slice>.<task>` — it extracts the task's full text to a
   uniquely named file and prints the path. Compose the dispatch so the
   brief stays the single source of
   requirements. Your dispatch should contain: (1) one line on where this
@@ -400,7 +407,7 @@ instead.
   subagent's own file reads is not something to rely on. So name the area
   files. See Area Context below for how to find them.
 - **Report file:** name the implementer's report file after the brief
-  (brief `…/task-N-brief.md` → report `…/task-N-report.md`) and put it in
+  (brief `…/task-<slice>.<task>-brief.md` → report `…/task-<slice>.<task>-report.md`) and put it in
   the dispatch prompt. The implementer writes the full report there and
   returns only status, commits, a one-line test summary, and concerns.
 - A dispatch prompt describes one task, not the session's history. Do not
@@ -426,7 +433,7 @@ Template: [implementer-prompt.md](implementer-prompt.md)
 
 Implementer subagents report one of four statuses. Handle each appropriately:
 
-**DONE:** Run the task's test command (from the brief's Test command field) and read only the result: pass or fail — no reviewer runs per task; the slice reviewer at the checkpoint covers this task's diff. On pass, append `Task <slice>.<task>: complete (commits <base7>..<head7>, tests pass)` to the ledger and mark its todo complete. On fail, send the failure back to the same implementer (the agent identity you recorded at dispatch) with the test output, and wait for its fix before moving on.
+**DONE:** Run the task's test command (from the brief's Test command field) and read only the result: pass or fail — no reviewer runs per task; the slice reviewer at the checkpoint covers this task's diff. On pass, append `Task <slice>.<task>: complete (commits <base7>..<head7>, tests pass)` to the ledger and mark its todo complete. On fail, send the failure back to the same implementer (the agent identity you recorded at dispatch) with the test output, and wait for its fix before moving on. If the same command fails again after the resend, handle it as BLOCKED.
 
 **DONE_WITH_CONCERNS:** The implementer completed the work but flagged doubts. Read the concerns before proceeding. If the concerns are about correctness or scope, address them, then handle it as DONE: run the task's test command and append the completion line. If they're observations (e.g., "this file is getting large"), note them in the ledger for the slice reviewer, then handle it as DONE.
 
@@ -511,8 +518,9 @@ Before the loop starts, two routes leave it immediately:
   ledger the ruling before you act on it. Do not dismiss the finding because
   the plan mandates it, and do not dispatch a fix that contradicts the plan
   without a recorded ruling.
-Everything else enters the loop. A fix round is one fix dispatch plus a
-re-review. Two rounds maximum per slice:
+Everything else enters the loop. A fix round is one fix dispatch plus its
+verification (a scoped re-review, or your own diff read and test run for a
+trivial fix). Two rounds maximum per slice:
 
 **Round 1 — resume the implementer of the task that owns the finding.**
 Send it the open findings verbatim. Its context is intact: it knows the
@@ -606,7 +614,9 @@ printed path in the final review dispatch, so the final reviewer reads
 one file instead of re-deriving the branch diff with git commands. Dispatch
 on the most capable available model (see Model Selection), using
 superpowers:requesting-code-review's
-[code-reviewer.md](../requesting-code-review/code-reviewer.md). Point it at
+[code-reviewer.md](../requesting-code-review/code-reviewer.md). Set
+`[FINAL_REVIEW]` in that dispatch: it is the only review that may make a
+real code mutation, in a temporary worktree. Point it at
 the ledger's deferred-minor and parked lines so it can triage which must be
 fixed before merge.
 
@@ -722,8 +732,8 @@ Re-reviewer: Missing progress reporting — ADDRESSED (src/recovery.js:41).
   Magic number — ADDRESSED (src/recovery.js:7). New breakage: none.
   Verdict: all findings addressed.
 
-[Ledger: Slice 1: fix round 1/2 (2 addressed, 0 open; commits d4e5f6a..b7c8d9e)]
-[Ledger: Slice 1: complete (commits a1b2c3d..b7c8d9e, review clean)]
+[Ledger: Slice 1: fix round 1/2 (2 addressed, 0 open; commits b7c8d9e..c0d1e2f)]
+[Ledger: Slice 1: complete (commits a1b2c3d..c0d1e2f, review clean)]
 
 ...
 

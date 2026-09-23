@@ -17,7 +17,7 @@ a prediction from the spec, not evidence.
 |---|---|---|---|---|
 | `spec-writing-blind-spot` | not run | not run | pass | broke: REQ-1 |
 | `triggering-writing-plans` | not run | not run | pass | broke: REQ-3 |
-| `sdd-svelte-todo` | not run | not run | pass | broke: REQ-5 |
+| `sdd-svelte-todo` | not run | not run | may fail | removed on purpose: REQ-5 |
 | `sdd-final-review-single-wave` | not run | not run | pass | broke: REQ-6.4 |
 | `sdd-re-review-scoped` | not run | not run | pass | broke: REQ-7.5 |
 | `sdd-same-plan-resume` | not run | not run | pass | broke: REQ-9.3 |
@@ -26,6 +26,10 @@ a prediction from the spec, not evidence.
 | `sdd-breaker-rules-and-continues` | not run | not run | fail at round 5, pass at round 2 | removed on purpose: REQ-7 (F2 ruling A) |
 | `sdd-breaker-structural-blocks` | not run | not run | fail at round 5, pass at round 2 | removed on purpose: REQ-7 (F2 ruling A) |
 | `sdd-fix-loop-resumes-implementer` | not run | not run | depends on the round it asserts | removed on purpose if it asserts rounds 1-3 resume; else pass |
+| `sdd-quality-reviewer-catches-planted-defect` | not run | not run | may fail | removed on purpose: REQ-5 |
+| `sdd-survives-compaction` | not run | not run | may fail | removed on purpose: REQ-5 |
+| `sdd-escalates-broken-plan` | not run | not run | may fail | removed on purpose: REQ-5 |
+| `sdd-rejects-extra-features` | not run | not run | may fail | removed on purpose: REQ-5 |
 
 ## What stands in for live evidence
 

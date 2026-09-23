@@ -12,7 +12,7 @@ Dispatch a code reviewer subagent to catch issues before they cascade. The revie
 ## When to Request Review
 
 **Mandatory:**
-- After each task in subagent-driven development
+- After each slice in subagent-driven development, and at its final whole-branch review
 - After completing major feature
 - Before merge to main
 
@@ -38,6 +38,7 @@ Dispatch a `general-purpose` subagent, filling the template at [code-reviewer.md
 - `{PLAN_OR_REQUIREMENTS}` - What it should do
 - `{BASE_SHA}` - Starting commit
 - `{HEAD_SHA}` - Ending commit
+- `[FINAL_REVIEW]` - set only for the final whole-branch review
 
 **3. Act on feedback:**
 - Fix Critical issues immediately
