@@ -7,7 +7,7 @@ description: Use when you have a spec or an approved intent for a multi-step tas
 
 ## Overview
 
-Write comprehensive implementation plans assuming the engineer has zero context for our codebase and questionable taste. Document everything they need to know: which files to touch for each slice, code, testing, docs they might need to check, how to test it. Give them the whole plan as vertical slices, each one built from bite-sized steps. DRY. YAGNI. TDD. Frequent commits.
+Write comprehensive implementation plans for an engineer who can read the repository but has never seen this codebase. Give each task its files, the behaviour it builds and the requirement that behaviour satisfies, the tests it writes and what each one asserts, and its test command — not the code itself, which the implementer reads in the repo. Give them the whole plan as vertical slices, each cut into tasks that fit one subagent. DRY. YAGNI. TDD. Frequent commits.
 
 Assume they are a skilled developer, but know almost nothing about our toolset or problem domain. Assume they don't know good test design very well.
 
@@ -48,19 +48,22 @@ Before defining slices, map out which files will be created or modified and what
 
 ## Slice Right-Sizing
 
-A slice is the smallest cut through the stack that someone can watch work. When drawing slice
-boundaries: fold setup, configuration, scaffolding, and documentation steps into the slice whose
-demonstration needs them; split only where a reviewer could meaningfully reject one slice while
-approving its neighbour.
+A slice is the smallest cut through the stack that someone can watch work — a checkpoint, not a
+unit of dispatch. Slice one is the MVP: the thinnest path through the change that has something to
+show. When drawing slice boundaries: fold setup, configuration, scaffolding, and documentation
+steps into the slice whose demonstration needs them; start a new slice only where there is
+something new to show and a reviewer could reject that slice alone.
 
 ## Bite-Sized Step Granularity
 
-Inside a slice, **each step is one action (2-5 minutes):**
+Inside a task, **each step is one action (2-5 minutes):**
 - "Write the failing test" - step
 - "Run it to make sure it fails" - step
 - "Implement the minimal code to make the test pass" - step
 - "Run the tests and make sure they pass" - step
 - "Commit" - step
+
+A task has 5 steps or fewer. Split it if it does not fit.
 
 ## Risk, And How Many Tests It Buys
 
@@ -71,19 +74,24 @@ Every slice records a risk assessment: **where this can fail, and what that fail
 - **Concentrate tests where the risk assessment names a cost.** A payment boundary, a permission check and a data migration each earn several tests. A pass-through wrapper earns one.
 - **Do not ask for one test per file.** Do not ask for one test per function. Neither number has anything to do with risk.
 - **Do not ask for a test whose only purpose is raising coverage.** A test that cannot fail for a reason you can name is wasted code, and it slows every future run.
-- **A slice that changes behaviour gets a test.** The `superpowers:test-driven-development` skill owns that rule and its exceptions are the only exceptions. A plan cannot write "no test" for behaviour.
+- **A task that changes behaviour gets a test.** The `superpowers:test-driven-development` skill owns that rule and its exceptions are the only exceptions. A plan cannot write "no test" for behaviour.
 
 Over-testing and under-testing are both failures. The first fills the suite with noise. The second is worse, because it is invisible until something breaks.
 
-## Which Model Runs A Slice
+## Which Model Runs A Task
 
-Name a model **only for a slice that a subagent implements.** Stages the session runs itself — the interview, the spec, the plan, the review, the reconcile — run on whatever model the session runs, and the plan says nothing about them.
+`Model` is a task field, not a slice field. Name a model **only for a task that a subagent
+implements.** Stages the session runs itself — the interview, the spec, the plan, the review, the
+reconcile — run on whatever model the session runs, and the plan says nothing about them.
 
-For a slice that goes to a subagent:
-- Files, tests, approach and the code all stated in the plan → the cheap tier.
-- Crosses files, or works from prose rather than literal code → the standard tier.
+For a task that goes to a subagent:
+- Its files, behaviour and tests are all stated below, and it touches one production file → the
+  cheap tier.
+- It crosses files → the standard tier.
 
-A slice that needs the most capable tier because the plan is vague is a planning failure. Sharpen the slice instead of upgrading the executor. `superpowers:subagent-driven-development` holds the full tier definitions and settles anything the plan does not name.
+A task that needs the most capable tier because the plan is vague is a planning failure. Sharpen
+the task instead of upgrading the executor. `superpowers:subagent-driven-development` holds the
+full tier definitions and settles anything the plan does not name.
 
 ## Plan Document Header
 
@@ -115,6 +123,16 @@ include this section.]
 
 ## Slice Structure
 
+A slice is a checkpoint; it is cut into tasks, and one subagent implements one task. A task
+changes 3 production files or fewer, plus their tests. It has 5 steps or fewer. It names one test
+command, and the suite is green when the task ends. Split a task that breaks any of these limits —
+sharpen the cut, not the executor.
+
+Each task lists its files, the behaviour it builds and the requirement that behaviour satisfies,
+the tests it writes and what each one asserts, and its test command. The implementer sees only its
+own task's brief, so a task states what it does in its own words — it never points at another
+task's text for the content.
+
 ````markdown
 ### Slice N: [What someone can watch work]
 
@@ -126,55 +144,30 @@ include this section.]
 A failure here shows a stale status to every customer. Tests concentrate on the
 cache boundary; the template rendering gets none.
 
-**Model:** cheap tier — files, tests and code are all stated below.
-*(omit this field entirely when the session implements the slice itself)*
+#### Task N.M: [What this task builds, in its own words]
+
+**Model:** cheap tier — files, behaviour and tests are all stated below, and the task touches one
+production file. *(omit this field entirely when the session implements the task itself)*
+
+**Satisfies:** REQ-3.2
 
 **Files:**
 - Create: `exact/path/to/file.py`
 - Modify: `exact/path/to/existing.py:123-145`
 - Test: `tests/exact/path/to/test.py`
 
-**Interfaces:**
-- Consumes: [what this slice uses from earlier slices — exact signatures]
-- Produces: [what later slices rely on — exact function names, parameter
-  and return types. A slice's implementer sees only their own slice; this
-  block is how they learn the names and types neighbouring slices use.]
+**Tests** (`pytest tests/path/test.py -v`):
+- `test_specific_behavior` asserts the function returns the cached status, not a fresh lookup,
+  when the cache entry is younger than 60 seconds.
 
-- [ ] **Step 1: Write the failing test**
+**Test command:** `pytest tests/path/test.py -v`
 
-```python
-def test_specific_behavior():
-    result = function(input)
-    assert result == expected
-```
-
-- [ ] **Step 2: Run test to verify it fails**
-
-Run: `pytest tests/path/test.py::test_name -v`
-Expected: FAIL with "function not defined"
-
-- [ ] **Step 3: Write minimal implementation**
-
-```python
-def function(input):
-    return expected
-```
-
-- [ ] **Step 4: Run test to verify it passes**
-
-Run: `pytest tests/path/test.py::test_name -v`
-Expected: PASS
-
-- [ ] **Step 5: Demonstrate the slice**
-
-Run the demonstration command above. Expected: the order page shows a status.
-
-- [ ] **Step 6: Commit**
-
-```bash
-git add tests/path/test.py src/path/file.py
-git commit -m "feat: add specific feature"
-```
+- [ ] Write the failing test.
+- [ ] Run it and see it fail with "function not defined".
+- [ ] Write the function: read the cache; on a hit younger than 60 seconds return it; on a miss,
+  call the upstream API and populate the cache.
+- [ ] Run the test and see it pass.
+- [ ] Commit: `feat: cache the status lookup`.
 ````
 
 ## No Placeholders
@@ -182,10 +175,10 @@ git commit -m "feat: add specific feature"
 Every step must contain the actual content an engineer needs. These are **plan failures** — never write them:
 - "TBD", "TODO", "implement later", "fill in details"
 - "Add appropriate error handling" / "add validation" / "handle edge cases"
-- "Write tests for the above" (without actual test code)
-- "Similar to Slice N" (repeat the code — the engineer may be reading slices out of order)
-- Steps that describe what to do without showing how (code blocks required for code steps)
-- References to types, functions, or methods not defined in any slice
+- "Write tests for the above" (without stating what the test asserts)
+- "Similar to Task N.M" — the implementer sees only its own task's brief, so each task says what
+  it does in its own words.
+- References to types, functions, or methods not defined in any earlier task
 - A slice with no demonstration command
 
 ## Self-Review
@@ -203,6 +196,8 @@ After writing the complete plan, look at the spec with fresh eyes and check the 
 **5. Type consistency:** Do the types, method signatures, and property names you used in later slices match what you defined in earlier ones? A function called `clearLayers()` in Slice 3 but `clearFullLayers()` in Slice 7 is a bug.
 
 **6. Test sizing:** Count the tests. If the count tracks the number of files rather than the number of risks, re-read the risk assessments.
+
+**7. Task limits:** For each task, count its production files (3 or fewer, not counting tests), count its steps (5 or fewer), and confirm it names one test command. Split any task that breaks a limit.
 
 If you find issues, fix them inline. No need to re-review — just fix and move on. If you find a spec requirement with no slice, add the slice.
 
@@ -222,7 +217,7 @@ After saving the plan, offer execution choice:
 
 **"Plan complete and saved to `docs/superpowers/changes/<slug>/plan.md`. Two execution options:**
 
-**1. Subagent-Driven (recommended)** - I dispatch a fresh subagent per slice, review between slices, fast iteration
+**1. Subagent-Driven (recommended)** - a fresh subagent per task, one review per slice
 
 **2. Inline Execution** - Execute slices in this session using executing-plans, batch execution with checkpoints
 
@@ -230,7 +225,6 @@ After saving the plan, offer execution choice:
 
 **If Subagent-Driven chosen:**
 - **REQUIRED SUB-SKILL:** Use superpowers:subagent-driven-development
-- Fresh subagent per slice + two-stage review
 
 **If Inline Execution chosen:**
 - **REQUIRED SUB-SKILL:** Use superpowers:executing-plans
