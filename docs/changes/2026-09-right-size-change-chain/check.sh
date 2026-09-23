@@ -106,7 +106,7 @@ check_req_5() {
 
 check_req_6() {
   local sdd="$REPO_ROOT/skills/subagent-driven-development/SKILL.md"
-  local what="slice checkpoint runs the demo then dispatches one slice reviewer over the range from the commit before the slice's first task; slice one's review is dispatched alongside the human demo; Final Review still uses the most capable model, ONE fix dispatch and one scoped re-review (REQ-6.4), and sets [FINAL_REVIEW] in its code-reviewer dispatch"
+  local what="slice checkpoint runs the demo then dispatches one slice reviewer over the range from the commit before the slice's first task; slice one's review is dispatched alongside the human demo; Final Review still uses the most capable model, ONE fix dispatch and one scoped re-review (REQ-6.4), and carries no mutation marker"
   local per_slice_cluster final_review_section
   per_slice_cluster="$(sed -n '/subgraph cluster_per_slice {/,/^    }/p' "$sdd")"
   final_review_section="$(awk '/^## Final Review$/,/^## Finish$/' "$sdd" | tr '\n' ' ' | tr -s ' ')"
@@ -119,7 +119,7 @@ check_req_6() {
     && grep -q 'most capable available model' <<<"$final_review_section" \
     && grep -q 'dispatch ONE fix subagent' <<<"$final_review_section" \
     && grep -q 'exactly one scoped re-review' <<<"$final_review_section" \
-    && grep -q 'Set `\[FINAL_REVIEW\]` in that dispatch' <<<"$final_review_section"; then
+    && ! grep -q 'FINAL_REVIEW' <<<"$final_review_section"; then
     pass REQ-6 "$what"
   else
     fail REQ-6 "$what"
@@ -174,11 +174,12 @@ check_f1() {
 
 check_req_8_1() {
   local file="$REPO_ROOT/skills/requesting-code-review/code-reviewer.md"
-  local what="code-reviewer.md allows mutations only in a temporary worktree, and says to remove it afterwards"
-  if grep -q 'only reviewer who may make a real code mutation' "$file" \
-    && grep -q 'separate temporary worktree' "$file" \
-    && grep -q 'git worktree remove' "$file" \
-    && grep -q 'never move HEAD or touch the working tree on this checkout' "$file"; then
+  local what="code-reviewer.md forbids code mutation for every dispatch, the final review included, and tells the reviewer to report a suspected uncaught mutation as a finding"
+  local flat
+  flat="$(tr '\n' ' ' <"$file" | tr -s ' ')"
+  if grep -q 'Do not mutate code to test a hypothesis' <<<"$flat" \
+    && grep -q 'report it as a finding' <<<"$flat" \
+    && ! grep -q 'may make a real code mutation' <<<"$flat"; then
     pass REQ-8.1 "$what"
   else
     fail REQ-8.1 "$what"
@@ -264,14 +265,9 @@ check_i1() {
 }
 
 check_i2() {
-  local file="$REPO_ROOT/skills/requesting-code-review/code-reviewer.md"
-  local what="the mutation licence in code-reviewer.md is conditional on a FINAL_REVIEW marker only the final whole-branch review sets; every other dispatch stays read-only and reports a suspected uncaught mutation as a finding"
-  local flat
-  flat="$(tr '\n' ' ' <"$file" | tr -s ' ')"
-  if grep -q '\[FINAL_REVIEW\]' <<<"$flat" \
-    && grep -q 'leaves it unset, and stays read-only' <<<"$flat" \
-    && grep -q 'report a suspected uncaught mutation as a finding instead of making it' <<<"$flat" \
-    && grep -q 'When `\[FINAL_REVIEW\]` is set, you are the final reviewer' <<<"$flat"; then
+  local what="no skill carries a FINAL_REVIEW marker or a mutation licence (REQ-8.4 withdrawn)"
+  if ! grep -rq 'FINAL_REVIEW' "$REPO_ROOT/skills" \
+    && ! grep -rq 'real code mutation, in a temporary worktree' "$REPO_ROOT/skills"; then
     pass I2 "$what"
   else
     fail I2 "$what"
@@ -320,10 +316,9 @@ check_final_model_task() {
 
 check_final_review_mandate() {
   local file="$REPO_ROOT/skills/requesting-code-review/SKILL.md"
-  local what="review is mandatory after each SDD slice and at its final review (not after each task); [FINAL_REVIEW] is in the placeholder list"
+  local what="review is mandatory after each SDD slice and at its final review (not after each task)"
   if grep -q 'After each slice in subagent-driven development' "$file" \
-    && ! grep -q 'After each task in subagent-driven development' "$file" \
-    && grep -q '\[FINAL_REVIEW\]' "$file"; then
+    && ! grep -q 'After each task in subagent-driven development' "$file"; then
     pass I5-final "$what"
   else
     fail I5-final "$what"

@@ -32,7 +32,7 @@ Subagent (general-purpose):
 
     ## Mutations Only In A Temporary Worktree
 
-    This checkout is read-only: do not mutate the working tree, the index, HEAD, or branch state in any way. Use tools like `git show`, `git diff`, and `git log` to inspect history. `[FINAL_REVIEW]` marks this dispatch as the final whole-branch review; every other use of this template leaves it unset, and stays read-only — report a suspected uncaught mutation as a finding instead of making it. When `[FINAL_REVIEW]` is set, you are the final reviewer, and the only reviewer who may make a real code mutation — for example, to test whether a suspected defect is actually uncaught. Make it in a separate temporary worktree (e.g. `git worktree add /tmp/review-[SHA] [SHA]`), run the test there, and remove the worktree when you're done (`git worktree remove /tmp/review-[SHA]`) — never move HEAD or touch the working tree on this checkout.
+    Your review is read-only on this checkout. Do not mutate the working tree, the index, HEAD, or branch state in any way. Use tools like `git show`, `git diff`, and `git log` to inspect history. If you need a working copy of a different revision, check it out into a separate temporary directory (e.g. `git worktree add /tmp/review-[SHA] [SHA]`) — never move HEAD on this checkout. Do not mutate code to test a hypothesis. If you suspect a behaviour that no test would catch, report it as a finding: name the line, the change that would go unnoticed, and the test that would catch it.
 
     ## You Do Not Dispatch Subagents
 
@@ -139,11 +139,6 @@ Subagent (general-purpose):
 - `[PLAN_OR_REQUIREMENTS]` — what it should do (plan file path, task text, or requirements)
 - `[BASE_SHA]` — starting commit
 - `[HEAD_SHA]` — ending commit
-- `[FINAL_REVIEW]` — set only when this dispatch is the final whole-branch
-  review (REQ-8: only that review may mutate code, and only in a temporary
-  worktree). Every other dispatch of this template — after each task, after
-  completing a major feature, when stuck — leaves it unset and stays
-  read-only.
 
 **Reviewer returns:** Strengths, Issues (Critical / Important / Minor), Recommendations, Assessment
 

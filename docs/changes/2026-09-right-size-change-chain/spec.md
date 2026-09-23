@@ -7,7 +7,7 @@ Intent: `intent.md`. Date: 2026-09-23. Status: approved.
 This change makes the spec, the plan and the execution loop scale to the change they carry. The
 spec traces each requirement to the intent. The plan cuts few slices and splits each slice into
 tasks that fit one subagent. Execution reviews once per slice, caps the fix loop at two rounds, and
-keeps real code mutations for the final review.
+keeps every reviewer read-only.
 
 Size: 10 requirements from 13 intent items. Each requirement names its source in the intent.
 
@@ -98,8 +98,7 @@ NOT review each task.
     review at the same time as it shows the demonstration to the human. The session MUST wait for
     both the review and the human.
   - **REQ-6.4** The final whole-branch review MUST keep its behaviour: the most capable model, one
-    fix dispatch and one scoped re-review. Its section gains one line: the dispatch sets the
-    `[FINAL_REVIEW]` marker of REQ-8.4.
+    fix dispatch and one scoped re-review.
   *Proof: the SDD skill text and flowchart contain each rule. The `sdd-final-review-single-wave`
   scenario still passes.*
   *Source: Proposed outcome, paragraph 2. D1. Q3. Constraints.*
@@ -117,15 +116,14 @@ rounds.
   `sdd-re-review-scoped` scenario still passes for a code fix.*
   *Source: Q3.*
 
-**REQ-8** Only the final reviewer MAY make real code mutations.
-  - **REQ-8.1** The final reviewer MUST make each mutation in a separate temporary worktree and
-    MUST NOT change the working tree.
+**REQ-8** A reviewer MUST NOT make real code mutations.
+  - **REQ-8.1** The final reviewer MUST NOT mutate code either. If it suspects a mutation that no
+    test catches, it MUST report that as a finding.
   - **REQ-8.2** The slice reviewer and the scoped re-reviewer MUST NOT mutate code. If a slice
     reviewer suspects a mutation that no test catches, it MUST report that as a finding.
   - **REQ-8.3** The mental mutation check in `test-driven-development/writing-good-tests.md` MUST
     stay as it is.
-  - **REQ-8.4** The `code-reviewer.md` template MUST grant the mutation licence only to a dispatch
-    that sets the `[FINAL_REVIEW]` marker.
+  - **REQ-8.4: withdrawn.** No reviewer holds a mutation licence, so no marker gates one.
   *Proof: the prompt text of `code-reviewer.md`, the task reviewer prompt and `re-review-prompt.md`
   contains each rule. `git diff` shows no change to `writing-good-tests.md`.*
   *Source: D2. Constraints.*
@@ -241,4 +239,9 @@ scenarios live in the upstream `superpowers-evals` repository, outside this fork
   older plans and the eval fixtures still run. Ruling: the spec was wrong.
 - REQ-10: unchanged. No live eval ran. Ruling: the code is wrong. Lars runs the live scenarios
   before the pull request merges.
-
+- REQ-8, REQ-8.1, REQ-8.4 and REQ-6.4, second pass: no reviewer mutates code, the final reviewer
+  included. A real mutation needs a separate worktree, and a fresh worktree has no installed
+  dependencies, so the run can fail and repeat. That costs the time this change exists to save.
+  The fix implementer writes the missing test instead, and its failing run proves the gap. REQ-8.4
+  is withdrawn, and the Final Review section is back to its text on `main`. Ruling: the spec was
+  wrong (Lars, reversing V5).

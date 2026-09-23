@@ -38,7 +38,6 @@ Dispatch a `general-purpose` subagent, filling the template at [code-reviewer.md
 - `{PLAN_OR_REQUIREMENTS}` - What it should do
 - `{BASE_SHA}` - Starting commit
 - `{HEAD_SHA}` - Ending commit
-- `[FINAL_REVIEW]` - set only for the final whole-branch review
 
 **3. Act on feedback:**
 - Fix Critical issues immediately
