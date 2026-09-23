@@ -124,9 +124,58 @@ check_req_6() {
   fi
 }
 
+check_req_7() {
+  local sdd="$REPO_ROOT/skills/subagent-driven-development/SKILL.md"
+  local what="fix loop caps at 2 rounds (round 1 resumes the task's implementer, round 2 a fresh implementer one tier up); no text names rounds 3, 4 or 5, 'of 5', 'R≤3' or 'R≥4'; a trivial fix skips the re-review, a code/test-body fix gets a scoped re-review"
+  if grep -q 'Fix round R of 2' "$sdd" \
+    && grep -q 'R = 2?' "$sdd" \
+    && grep -q "Round 1 — resume the implementer of the task that owns the finding" "$sdd" \
+    && grep -q 'Round 2 — dispatch a fresh implementer one tier above' "$sdd" \
+    && grep -q 'skip the re-review' "$sdd" \
+    && grep -q 'gets a scoped re-review' "$sdd" \
+    && ! grep -qiE 'rounds? (3|4|5)\b' "$sdd" \
+    && ! grep -q 'of 5' "$sdd" \
+    && ! grep -q 'R≤3' "$sdd" \
+    && ! grep -q 'R≥4' "$sdd"; then
+    pass REQ-7 "$what"
+  else
+    fail REQ-7 "$what"
+  fi
+}
+
+check_req_9_3() {
+  local sdd="$REPO_ROOT/skills/subagent-driven-development/SKILL.md"
+  local what="ledger records 'Task <slice>.<task>: complete' and 'Slice <N>: complete'; resume rule starts at the slice review of a slice whose tasks are all complete and that has no slice-complete line"
+  local setup_rule
+  setup_rule="$(tr '\n' ' ' <"$sdd")"
+  if grep -q 'Task <slice>.<task>: complete' "$sdd" \
+    && grep -q 'Slice <N>: complete' "$sdd" \
+    && grep -q 'resumes at its slice review' "$sdd" \
+    && grep -qE 'no.{0,10}`Slice <N>: complete`.{0,10}line resumes at its slice review' <<<"$setup_rule"; then
+    pass REQ-9.3 "$what"
+  else
+    fail REQ-9.3 "$what"
+  fi
+}
+
+check_f1() {
+  local sdd="$REPO_ROOT/skills/subagent-driven-development/SKILL.md"
+  local what='rationalization row reads "The fix touched code, but it was small" -> "Any change to code or test bodies gets a scoped re-review."'
+  if grep -q 'The fix touched code, but it was small' "$sdd" \
+    && grep -q 'Any change to code or test bodies gets a scoped re-review' "$sdd" \
+    && ! grep -q 'The fix was small, skip the re-review' "$sdd"; then
+    pass F1 "$what"
+  else
+    fail F1 "$what"
+  fi
+}
+
 slice2() {
   check_req_5
   check_req_6
+  check_req_7
+  check_req_9_3
+  check_f1
 }
 
 slice3() {
