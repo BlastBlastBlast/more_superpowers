@@ -174,12 +174,17 @@ check_f1() {
 
 check_req_8_1() {
   local file="$REPO_ROOT/skills/requesting-code-review/code-reviewer.md"
-  local what="code-reviewer.md forbids code mutation for every dispatch, the final review included, and tells the reviewer to report a suspected uncaught mutation as a finding"
-  local flat
-  flat="$(tr '\n' ' ' <"$file" | tr -s ' ')"
-  if grep -q 'Do not mutate code to test a hypothesis' <<<"$flat" \
-    && grep -q 'report it as a finding' <<<"$flat" \
-    && ! grep -q 'may make a real code mutation' <<<"$flat"; then
+  local what="code-reviewer.md allows at most 3 reverted mutations in the working tree for a named risk, never while another agent writes to the tree, and ends with git status"
+  local X
+  X="$(tr '\n' ' ' <"$file" | tr -s ' ')"
+  if grep -q 'at most 3 mutations' <<<"$X" \
+    && grep -q 'a risk you name' <<<"$X" \
+    && grep -q 'revert it before the next' <<<"$X" \
+    && grep -q 'never commit, stage, stash, or move HEAD' <<<"$X" \
+    && grep -q 'while another agent is writing to this tree' <<<"$X" \
+    && grep -q 'End your report with the output of `git status --porcelain`' <<<"$X" \
+    && grep -q 'A mutation that no test catches is a finding' <<<"$X" \
+    && ! grep -q 'Do not mutate code to test a hypothesis' <<<"$X"; then
     pass REQ-8.1 "$what"
   else
     fail REQ-8.1 "$what"
@@ -189,18 +194,38 @@ check_req_8_1() {
 check_req_8_2() {
   local trp="$REPO_ROOT/skills/subagent-driven-development/task-reviewer-prompt.md"
   local rrp="$REPO_ROOT/skills/subagent-driven-development/re-review-prompt.md"
-  local what="task reviewer prompt and re-review prompt forbid mutation, tell the reviewer to report a suspected uncaught mutation as a finding; task reviewer prompt says it reviews a slice"
-  local trp_flat rrp_flat
-  trp_flat="$(tr '\n' ' ' <"$trp" | tr -s ' ')"
+  local what="the slice reviewer prompt allows the same bounded, reverted mutations and says it reviews a slice; the re-review prompt still forbids mutation"
+  local X rrp_flat
+  X="$(tr '\n' ' ' <"$trp" | tr -s ' ')"
   rrp_flat="$(tr '\n' ' ' <"$rrp" | tr -s ' ')"
-  if grep -q 'not even to test whether a suspected defect is actually uncaught' <<<"$trp_flat" \
-    && grep -q 'report it as a finding instead of making it' <<<"$trp_flat" \
-    && grep -q 'reviews a slice' <<<"$trp_flat" \
+  if grep -q 'at most 3 mutations' <<<"$X" \
+    && grep -q 'a risk you name' <<<"$X" \
+    && grep -q 'revert it before the next' <<<"$X" \
+    && grep -q 'never commit, stage, stash, or move HEAD' <<<"$X" \
+    && grep -q 'while another agent is writing to this tree' <<<"$X" \
+    && grep -q 'End your report with the output of `git status --porcelain`' <<<"$X" \
+    && grep -q 'A mutation that no test catches is a finding' <<<"$X" \
+    && grep -q 'reviews a slice' <<<"$X" \
     && grep -q 'not even to test whether a suspected defect is actually uncaught' <<<"$rrp_flat" \
     && grep -q 'report it as a finding instead of making it' <<<"$rrp_flat"; then
     pass REQ-8.2 "$what"
   else
     fail REQ-8.2 "$what"
+  fi
+}
+
+check_req_8_5() {
+  local sdd="$REPO_ROOT/skills/subagent-driven-development/SKILL.md"
+  local what="SDD records git status before every review and restores only the paths a review changed before the next dispatch"
+  local X
+  X="$(tr '\n' ' ' <"$sdd" | tr -s ' ')"
+  if grep -q 'Keep the tree clean around every review' <<<"$X" \
+    && grep -q 'record `git status --porcelain`' <<<"$X" \
+    && grep -q 'restore only that path' <<<"$X" \
+    && grep -q 'tree restored after review' <<<"$X"; then
+    pass REQ-8.5 "$what"
+  else
+    fail REQ-8.5 "$what"
   fi
 }
 
@@ -282,6 +307,7 @@ slice2() {
   check_f1
   check_req_8_1
   check_req_8_2
+  check_req_8_5
   check_req_8_3
   check_i3
   check_i4

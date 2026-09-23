@@ -491,6 +491,14 @@ needed.
   loop. If the prompt you are writing contains "do not flag," "don't treat X
   as a defect," "at most Minor," or "the plan chose" — stop: you are
   pre-judging, usually to spare yourself a review loop.
+**Keep the tree clean around every review.** A slice or final reviewer may make
+up to 3 mutations to test a risk, and reverts each one. Before you dispatch any
+reviewer, record `git status --porcelain`. When the review returns, run it again.
+If a path changed, restore only that path (`git restore -- <path>` for a tracked
+file; delete a file the review created), ledger
+`Slice <N>: tree restored after review (<paths>)`, and only then dispatch the
+next agent. A reviewer never runs while an implementer does.
+
 The slice reviewer may report "⚠️ Cannot verify from diff" items — requirements
 that live in unchanged code or span tasks. These do not block the rest of the
 review, but you must resolve each one yourself before marking the slice

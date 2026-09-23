@@ -7,7 +7,7 @@ Intent: `intent.md`. Date: 2026-09-23. Status: approved.
 This change makes the spec, the plan and the execution loop scale to the change they carry. The
 spec traces each requirement to the intent. The plan cuts few slices and splits each slice into
 tasks that fit one subagent. Execution reviews once per slice, caps the fix loop at two rounds, and
-keeps every reviewer read-only.
+lets a reviewer test a named risk with at most 3 reverted mutations.
 
 Size: 10 requirements from 13 intent items. Each requirement names its source in the intent.
 
@@ -116,16 +116,20 @@ rounds.
   `sdd-re-review-scoped` scenario still passes for a code fix.*
   *Source: Q3.*
 
-**REQ-8** A reviewer MUST NOT make real code mutations.
-  - **REQ-8.1** The final reviewer MUST NOT mutate code either. If it suspects a mutation that no
-    test catches, it MUST report that as a finding.
-  - **REQ-8.2** The slice reviewer and the scoped re-reviewer MUST NOT mutate code. If a slice
-    reviewer suspects a mutation that no test catches, it MUST report that as a finding.
+**REQ-8** A slice reviewer or the final reviewer MAY make at most 3 code mutations per review.
+  - **REQ-8.1** The reviewer MUST mutate only for a risk it names, in the working tree, one line
+    at a time. It MUST revert each mutation before the next, and its report MUST end with the
+    output of `git status --porcelain`.
+  - **REQ-8.2** The scoped re-reviewer MUST NOT mutate code. A mutation that no test catches MUST
+    be reported as a finding, by any reviewer.
   - **REQ-8.3** The mental mutation check in `test-driven-development/writing-good-tests.md` MUST
     stay as it is.
-  - **REQ-8.4: withdrawn.** No reviewer holds a mutation licence, so no marker gates one.
+  - **REQ-8.4: withdrawn.** The working tree is safe to mutate, so no marker gates the licence.
+  - **REQ-8.5** Before each review, the session MUST record `git status --porcelain`. After the
+    review, it MUST restore only the paths the review changed, before it dispatches the next agent.
   *Proof: the prompt text of `code-reviewer.md`, the task reviewer prompt and `re-review-prompt.md`
-  contains each rule. `git diff` shows no change to `writing-good-tests.md`.*
+  contains each rule. SDD's section "3. Review the slice" contains REQ-8.5. `git diff` shows no
+  change to `writing-good-tests.md`.*
   *Source: D2. Constraints.*
 
 ### Interface
@@ -245,3 +249,9 @@ scenarios live in the upstream `superpowers-evals` repository, outside this fork
   The fix implementer writes the missing test instead, and its failing run proves the gap. REQ-8.4
   is withdrawn, and the Final Review section is back to its text on `main`. Ruling: the spec was
   wrong (Lars, reversing V5).
+- REQ-8, REQ-8.1, REQ-8.2 and REQ-8.5, third pass: a slice reviewer or the final reviewer may make
+  at most 3 reverted mutations in the working tree, for a named risk. The #357 mutations found
+  real gaps, and a run is proof where a reading is only a suspicion. The new loop never runs a
+  reviewer next to an implementer, so the working tree is safe without a separate worktree. The
+  session checks the tree after each review and restores what a review left behind. Ruling: the
+  spec was wrong (Lars).

@@ -51,11 +51,16 @@ Subagent (general-purpose):
     lock ordering, a function or API contract, or shared mutable state,
     checking the call sites is the right method.
 
-    Your review is read-only on this checkout. Do not mutate the working
-    tree, the index, HEAD, or branch state in any way — not even to test
-    whether a suspected defect is actually uncaught. If you suspect a
-    mutation that no test would catch, report it as a finding instead of
-    making it.
+    Do not change the index, HEAD, or branch state. The working tree stays
+    as you found it, with one exception. You may mutate code to test a risk
+    you name, for example whether a suspected defect is actually uncaught.
+    Make at most 3 mutations in this review, in this working tree, one at a
+    time: change one line, run the one test that should catch it, then
+    revert it before the next. Never mutate while another agent is writing
+    to this tree, and never commit, stage, stash, or move HEAD. End your
+    report with the output of `git status --porcelain`, which must show none
+    of your changes. A mutation that no test catches is a finding: name the
+    line, the change that went unnoticed, and the test that would catch it.
 
     ## You Do Not Dispatch Subagents
 
