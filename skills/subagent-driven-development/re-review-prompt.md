@@ -3,23 +3,26 @@
 Use this template when dispatching a re-review after a fix round. The
 re-reviewer verifies the findings were addressed and checks the fix diff for
 new breakage. It is not a fresh review — the full review already happened.
+A fix round can touch more than one task in the slice, so this template
+takes a list of briefs and a list of reports, like the slice reviewer
+template.
 
 **Purpose:** Verify each finding from the previous review was addressed, and
 that the fix itself broke nothing.
 
 ```
 Subagent (general-purpose):
-  description: "Re-review Task N fix round R"
+  description: "Re-review Slice N fix round R"
   model: [MODEL — REQUIRED: choose per SKILL.md Model Selection; an omitted
          model silently inherits the session's most expensive one]
   prompt: |
-    You are re-reviewing one task's fix round. A previous review produced
+    You are re-reviewing one slice's fix round. A previous review produced
     findings; an implementer has attempted to fix them. Your job is to
     verdict each finding and inspect the fix diff — nothing else.
 
-    ## The Task
+    ## The Task(s)
 
-    Read the task brief: [BRIEF_FILE]
+    Read each task brief: [BRIEF_FILES]
 
     ## The Findings Under Verification
 
@@ -27,8 +30,8 @@ Subagent (general-purpose):
 
     ## The Fix
 
-    Read the implementer's report (fix reports are appended at the end):
-    [REPORT_FILE]
+    Read each task's report (fix reports are appended at the end of each):
+    [REPORT_FILES]
 
     **Fix base:** [FIX_BASE_SHA] (the head the previous review saw)
     **Head:** [HEAD_SHA]
@@ -41,7 +44,10 @@ Subagent (general-purpose):
     `git diff [FIX_BASE_SHA]..[HEAD_SHA]`.
 
     Your review is read-only on this checkout. Do not mutate the working
-    tree, the index, HEAD, or branch state in any way.
+    tree, the index, HEAD, or branch state in any way — not even to test
+    whether a suspected defect is actually uncaught. If you suspect a
+    mutation that no test would catch, report it as a finding instead of
+    making it.
 
     ## You Do Not Dispatch Subagents
 
@@ -103,10 +109,12 @@ Subagent (general-purpose):
 **Placeholders:**
 - `[MODEL]` — REQUIRED: reviewer model per SKILL.md Model Selection; scoped
   re-reviews of small fix diffs take a cheap-to-mid tier
-- `[BRIEF_FILE]` — the task brief file (same file the implementer worked from)
+- `[BRIEF_FILES]` — the task brief files the fix round touches (the same
+  files the implementers worked from)
 - `[FINDINGS]` — the Critical/Important findings and spec gaps from the
   previous review, copied verbatim, one per bullet
-- `[REPORT_FILE]` — the implementer's report file (fix reports appended)
+- `[REPORT_FILES]` — the implementer report files the fix round touches
+  (fix reports appended at the end of each)
 - `[FIX_BASE_SHA]` — the head the previous review saw
 - `[HEAD_SHA]` — current commit
 - `[DIFF_FILE]` — the path `scripts/review-package PLAN_FILE FIX_BASE HEAD` printed

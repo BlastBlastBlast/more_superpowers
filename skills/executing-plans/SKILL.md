@@ -33,6 +33,9 @@ For each slice:
 4. Run the slice's demonstration command
 5. Mark as completed
 
+Run a slice's tasks in order, and run each task's tests when it ends — a
+failing test comes back to that task before you move to the next one.
+
 **Stop after slice one of an architectural change.** When the plan came from a
 spec, run slice one's demonstration command, show your human partner the
 output, and wait for them to continue, redirect, or stop. Do not start slice two

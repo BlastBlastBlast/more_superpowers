@@ -1,33 +1,35 @@
 # Task Reviewer Prompt Template
 
 Use this template when dispatching a task reviewer subagent. The reviewer
-reads the task's diff once and returns two verdicts: spec compliance and
-code quality.
+reviews a slice — one or more tasks — reading every task brief and report
+of the slice plus one review package from the slice's base commit, and
+returns two verdicts: spec compliance and code quality.
 
-**Purpose:** Verify one task's implementation matches its requirements (nothing
+**Purpose:** Verify a slice's implementation matches its requirements (nothing
 more, nothing less) and is well-built (clean, tested, maintainable)
 
 ```
 Subagent (general-purpose):
-  description: "Review Task N (spec + quality)"
+  description: "Review Slice N, tasks N.1-N.k (spec + quality)"
   model: [MODEL — REQUIRED: choose per SKILL.md Model Selection; an omitted
          model silently inherits the session's most expensive one]
   prompt: |
-    You are reviewing one task's implementation: first whether it matches its
-    requirements, then whether it is well-built. This is a task-scoped gate,
-    not a merge review — a broad whole-branch review happens separately after
-    all tasks are complete.
+    You are reviewing one slice's implementation — one or more tasks: first
+    whether it matches its requirements, then whether it is well-built. This
+    is a slice-scoped gate, not a merge review — a broad whole-branch review
+    happens separately after all tasks are complete.
 
     ## What Was Requested
 
-    Read the task brief: [BRIEF_FILE]
+    Read each task brief in the slice: [BRIEF_FILES]
 
-    Global constraints from the spec/design that bind this task:
+    Global constraints from the spec/design that bind this slice:
     [GLOBAL_CONSTRAINTS]
 
     ## What the Implementer Claims They Built
 
-    Read the implementer's report: [REPORT_FILE]
+    Read each task's report in the slice (fix reports appended at the end
+    of each): [REPORT_FILES]
 
     ## Diff Under Review
 
@@ -49,8 +51,16 @@ Subagent (general-purpose):
     lock ordering, a function or API contract, or shared mutable state,
     checking the call sites is the right method.
 
-    Your review is read-only on this checkout. Do not mutate the working
-    tree, the index, HEAD, or branch state in any way.
+    Do not change the index, HEAD, or branch state. The working tree stays
+    as you found it, with one exception. You may mutate code to test a risk
+    you name, for example whether a suspected defect is actually uncaught.
+    Make at most 3 mutations in this review, in this working tree, one at a
+    time: change one line, run the one test that should catch it, then
+    revert it before the next. Never mutate while another agent is writing
+    to this tree, and never commit, stage, stash, or move HEAD. End your
+    report with the output of `git status --porcelain`, which must show none
+    of your changes. A mutation that no test catches is a finding: name the
+    line, the change that went unnoticed, and the test that would catch it.
 
     ## You Do Not Dispatch Subagents
 
@@ -72,7 +82,7 @@ Subagent (general-purpose):
 
     ## Tests
 
-    The implementer already ran the tests and reported results with TDD
+    The implementers already ran the tests and reported results with TDD
     evidence for exactly this code. Do not re-run the suite to confirm their
     report. Run a test only when reading the code raises a specific doubt
     that no existing run answers — and then a focused test, never a
@@ -107,6 +117,11 @@ Subagent (general-purpose):
     file must have its corresponding hunk. A listed file the diff never
     touches is a Missing finding, no matter how clean the rest of the
     batch looks.
+
+    Check the diff against every task brief in the slice, one by one: each
+    task's requirements must show up somewhere in the diff. A task whose
+    brief is not addressed anywhere in the diff is a Missing finding, no
+    matter how clean the rest of the slice looks.
 
     If a requirement cannot be verified from this diff alone (it lives in
     unchanged code or spans tasks), report it as a ⚠️ item instead of
@@ -189,15 +204,16 @@ Subagent (general-purpose):
 
 **Placeholders:**
 - `[MODEL]` — REQUIRED: reviewer model per SKILL.md Model Selection
-- `[BRIEF_FILE]` — REQUIRED: the task brief file (`scripts/task-brief PLAN N`
-  prints the path; same file the implementer worked from)
+- `[BRIEF_FILES]` — REQUIRED: the slice's task brief files, one per task
+  (`scripts/task-brief PLAN <slice>.<task>` prints each path; the same
+  files the implementers worked from)
 - `[GLOBAL_CONSTRAINTS]` — the binding requirements copied verbatim from
   the plan's Global Constraints section or the spec: exact values, formats,
   and stated relationships between components (not process rules — those
   are already in this template)
-- `[REPORT_FILE]` — REQUIRED: the file the implementer wrote its detailed
-  report to
-- `[BASE_SHA]` — commit before this task
+- `[REPORT_FILES]` — REQUIRED: the slice's task report files, one per task
+  (fix reports appended at the end of each)
+- `[BASE_SHA]` — commit before the slice (the recorded slice BASE)
 - `[HEAD_SHA]` — current commit
 - `[DIFF_FILE]` — REQUIRED: the path the controller wrote the review
   package to (`scripts/review-package PLAN_FILE BASE HEAD` prints the unique
