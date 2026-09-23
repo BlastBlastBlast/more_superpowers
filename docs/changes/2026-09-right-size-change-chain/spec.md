@@ -20,6 +20,7 @@ Size: 10 requirements from 13 intent items. Each requirement names its source in
   does not write code.
 - **Slice review:** one review of all the commits of one slice, at its checkpoint.
 - **Trivial fix:** a fix diff that changes only documentation files, comments or docstrings.
+  Skill instruction text, such as a `SKILL.md` or a prompt, is not documentation.
 
 ## Requirements
 
@@ -82,6 +83,8 @@ NOT review each task.
     implementer.
   - **REQ-5.3** The `executing-plans` skill MUST run the tasks of a slice in order, and the tests
     after each task.
+  - **REQ-5.4** If the same test command fails again after the resend, the session MUST handle
+    the task as BLOCKED.
   *Proof: the SDD flowchart has a per-task loop with no reviewer dispatch in it. The
   `sdd-svelte-todo` scenario shows one reviewer dispatch per slice, not per task.*
   *Source: Proposed outcome, paragraph 2. D1.*
@@ -94,8 +97,9 @@ NOT review each task.
   - **REQ-6.3** For slice one of an architectural change, the session MUST dispatch the slice
     review at the same time as it shows the demonstration to the human. The session MUST wait for
     both the review and the human.
-  - **REQ-6.4** The final whole-branch review MUST stay as it is: the most capable model, one fix
-    dispatch and one scoped re-review.
+  - **REQ-6.4** The final whole-branch review MUST keep its behaviour: the most capable model, one
+    fix dispatch and one scoped re-review. Its section gains one line: the dispatch sets the
+    `[FINAL_REVIEW]` marker of REQ-8.4.
   *Proof: the SDD skill text and flowchart contain each rule. The `sdd-final-review-single-wave`
   scenario still passes.*
   *Source: Proposed outcome, paragraph 2. D1. Q3. Constraints.*
@@ -120,6 +124,8 @@ rounds.
     reviewer suspects a mutation that no test catches, it MUST report that as a finding.
   - **REQ-8.3** The mental mutation check in `test-driven-development/writing-good-tests.md` MUST
     stay as it is.
+  - **REQ-8.4** The `code-reviewer.md` template MUST grant the mutation licence only to a dispatch
+    that sets the `[FINAL_REVIEW]` marker.
   *Proof: the prompt text of `code-reviewer.md`, the task reviewer prompt and `re-review-prompt.md`
   contains each rule. `git diff` shows no change to `writing-good-tests.md`.*
   *Source: D2. Constraints.*
@@ -131,13 +137,17 @@ rounds.
     slice.
   - **REQ-9.2** The `task-brief` script MUST accept a task identifier `<slice>.<task>`, and the brief
     MUST end at the next task heading or slice heading.
-  - **REQ-9.3** The ledger MUST record `Task <slice>.<task>: complete` for a task and
-    `Slice <N>: complete` for a slice. On resume, the session MUST start at the slice review of a
-    slice whose tasks are all complete and that has no `Slice <N>: complete` line.
+  - **REQ-9.3** The ledger MUST record `Task <slice>.<task>: complete` for a task,
+    `Slice <N>: complete` for a slice, and `Slice <N>: base <sha7>` before the first task of a
+    slice. The slice review and the resume rule read the slice range from the base line. On
+    resume, the session MUST start at the slice review of a slice whose tasks are all complete
+    and that has no `Slice <N>: complete` line.
+  - **REQ-9.4** If a plan has no slice headings, SDD MUST run each task as its own slice, with its
+    own test run, slice review and ledger lines.
   *Proof: a new test under `tests/claude-code/` runs `task-brief` on a fixture plan with two
   slices and checks that the brief of the last task in slice 1 does not contain slice 2's text.
-  The `sdd-same-plan-resume` scenario still passes.*
-  *Source: Proposed outcome, paragraph 2.*
+  The `sdd-same-plan-resume` scenario still passes. REQ-9.4: the `check.sh` I1 check.*
+  *Source: Proposed outcome, paragraph 2. REQ-9.4: reconciliation.*
 
 ### Operations
 
@@ -214,3 +224,21 @@ scenarios live in the upstream `superpowers-evals` repository, outside this fork
   already ran on the standard tier, so the cost does not change.
 - The eval clone is at `~/dev/superpowers2-opus55/evals`, not at `evals/` in this repository. The
   eval runs for REQ-10 use that clone.
+
+## Reconciled 2026-09-23
+
+- Vocabulary, trivial fix: the build excludes skill instruction text from documentation. In this
+  repository the skill text is the product. Ruling: the spec was wrong.
+- REQ-5.4: added. The build handles a second failure of the same test command as BLOCKED, so the
+  per-task loop has a cap. Ruling: the spec was wrong.
+- REQ-6.4: the Final Review keeps its behaviour and gains one line that sets `[FINAL_REVIEW]`.
+  Without that line the licence of REQ-8.4 has no way to be reached. Ruling: the spec was wrong.
+- REQ-8.4: added. The build gates the mutation licence with the `[FINAL_REVIEW]` marker, because
+  other dispatches share the same template. Ruling: the spec was wrong.
+- REQ-9.3: the ledger gains the `Slice <N>: base <sha7>` line. Without it, a resume can build a
+  truncated review package. Ruling: the spec was wrong.
+- REQ-9.4: added. The build runs each task of a plan with no slice headings as its own slice, so
+  older plans and the eval fixtures still run. Ruling: the spec was wrong.
+- REQ-10: unchanged. No live eval ran. Ruling: the code is wrong. Lars runs the live scenarios
+  before the pull request merges.
+
