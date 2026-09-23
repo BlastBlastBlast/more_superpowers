@@ -131,7 +131,8 @@ sharpen the cut, not the executor.
 Each task lists its files, the behaviour it builds and the requirement that behaviour satisfies,
 the tests it writes and what each one asserts, and its test command. The implementer sees only its
 own task's brief, so a task states what it does in its own words — it never points at another
-task's text for the content.
+task's text for the content. The one code the plan does carry — an exact signature more than one
+task uses, or a value the spec gives — goes in the task's **Interfaces** block, not in prose.
 
 ````markdown
 ### Slice N: [What someone can watch work]
@@ -155,6 +156,12 @@ production file. *(omit this field entirely when the session implements the task
 - Create: `exact/path/to/file.py`
 - Modify: `exact/path/to/existing.py:123-145`
 - Test: `tests/exact/path/to/test.py`
+
+**Interfaces:** *(omit when this task shares no interface with another task)*
+- Consumes: [what this task uses from an earlier task — exact signatures]
+- Produces: [what a later task relies on — exact function names, parameter
+  and return types. A task's implementer sees only its own brief; this block
+  is how it learns the names and types neighbouring tasks use.]
 
 **Tests** (`pytest tests/path/test.py -v`):
 - `test_specific_behavior` asserts the function returns the cached status, not a fresh lookup,

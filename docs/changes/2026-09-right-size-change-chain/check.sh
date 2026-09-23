@@ -66,11 +66,24 @@ check_req_4() {
   fi
 }
 
+check_req_4_2() {
+  local file="$REPO_ROOT/skills/writing-plans/SKILL.md"
+  local what="the task template keeps an Interfaces block (Consumes/Produces) for REQ-4.2's exact signatures"
+  if grep -q '\*\*Interfaces:\*\*' "$file" \
+    && grep -q 'Consumes:' "$file" \
+    && grep -q 'Produces:' "$file"; then
+    pass REQ-4.2 "$what"
+  else
+    fail REQ-4.2 "$what"
+  fi
+}
+
 slice1() {
   check_req_9_2
   check_req_2
   check_req_3
   check_req_4
+  check_req_4_2
 }
 
 slice2() {
