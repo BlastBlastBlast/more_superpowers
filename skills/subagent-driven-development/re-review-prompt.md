@@ -1,24 +1,24 @@
 # Scoped Re-Review Prompt Template
 
-Use this template when dispatching a re-review after a fix round. The
-re-reviewer verifies the findings were addressed and checks the fix diff for
-new breakage. It is not a fresh review — the full review already happened.
-A fix round can touch more than one task in the slice, so this template
-takes a list of briefs and a list of reports, like the slice reviewer
-template.
+Use this template when dispatching the scoped re-review after the fix wave.
+The re-reviewer verifies the findings were addressed and checks the fix diff
+for new breakage. It is not a fresh review — the final review already
+happened. The fix wave can touch more than one task, so this template takes
+a list of briefs and a list of reports, like the final review template.
 
 **Purpose:** Verify each finding from the previous review was addressed, and
 that the fix itself broke nothing.
 
 ```
 Subagent (general-purpose):
-  description: "Re-review Slice N fix round R"
+  description: "Re-review the fix wave"
   model: [MODEL — REQUIRED: choose per SKILL.md Model Selection; an omitted
          model silently inherits the session's most expensive one]
   prompt: |
-    You are re-reviewing one slice's fix round. A previous review produced
-    findings; an implementer has attempted to fix them. Your job is to
-    verdict each finding and inspect the fix diff — nothing else.
+    You are re-reviewing the fix wave that followed the final review. The
+    final review produced findings; the fixers have attempted to fix them.
+    Your job is to verdict each finding and inspect the fix diff — nothing
+    else.
 
     ## The Task(s)
 
@@ -64,16 +64,17 @@ Subagent (general-purpose):
     Inspect the fix diff for new problems the fix itself introduced. Do NOT
     re-review code the fix did not touch: if you notice an issue entirely
     outside the fix diff, report it under Out-of-Scope Observations — it
-    does not block this task and does not extend the loop. A broad
-    whole-branch review happens after all tasks are complete.
+    does not block the fix wave and does not extend the loop. There is no
+    second fix wave: the controller handles whatever remains after this
+    re-review directly.
 
     ## Tests
 
-    The implementer re-ran the tests covering the amended code and appended
-    the results to the report file. Treat the report as unverified claims:
+    The fixers re-ran the tests covering the amended code and appended the
+    results to their report files. Treat each report as unverified claims:
     confirm the fix report names the covering tests and shows their output,
     and verify the claims against the diff. Do not re-run the suite to
-    confirm their report. Run a test only when reading the code raises a
+    confirm their reports. Run a test only when reading the code raises a
     specific doubt that no existing run answers — and then a focused test,
     never a package-wide suite.
 
@@ -98,26 +99,27 @@ Subagent (general-purpose):
     ### Out-of-Scope Observations
 
     Issues you noticed entirely outside the fix diff. Non-blocking; the
-    controller ledgers these for the final review. "None" if none.
+    controller records these in the ledger and the pull request body.
+    "None" if none.
 
     ### Verdict
 
-    **Fix round:** [All findings addressed, no new Critical/Important
+    **Fix wave:** [All findings addressed, no new Critical/Important
     breakage | Findings remain open] — list the open ones.
 ```
 
 **Placeholders:**
 - `[MODEL]` — REQUIRED: reviewer model per SKILL.md Model Selection; scoped
   re-reviews of small fix diffs take a cheap-to-mid tier
-- `[BRIEF_FILES]` — the task brief files the fix round touches (the same
+- `[BRIEF_FILES]` — the task brief files the fix wave touches (the same
   files the implementers worked from)
 - `[FINDINGS]` — the Critical/Important findings and spec gaps from the
   previous review, copied verbatim, one per bullet
-- `[REPORT_FILES]` — the implementer report files the fix round touches
-  (fix reports appended at the end of each)
+- `[REPORT_FILES]` — the fixer report files the fix wave touches (fix
+  reports appended at the end of each)
 - `[FIX_BASE_SHA]` — the head the previous review saw
 - `[HEAD_SHA]` — current commit
 - `[DIFF_FILE]` — the path `scripts/review-package PLAN_FILE FIX_BASE HEAD` printed
 
 **Re-reviewer returns:** per-finding verdicts (ADDRESSED / NOT ADDRESSED),
-new breakage in the fix diff, out-of-scope observations, and a round verdict.
+new breakage in the fix diff, out-of-scope observations, and a fix-wave verdict.
