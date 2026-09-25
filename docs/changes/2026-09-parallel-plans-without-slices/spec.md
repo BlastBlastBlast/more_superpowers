@@ -169,6 +169,8 @@ they serve.
     it.
   *Proof: `eval-baseline.md` and `eval-after.md` in this directory hold the runs and the labels.*
   *Source: Constraint 4.*
+  *Ruling (Lars, 2026-09-25): the live runs of REQ-10.2 and REQ-10.3 are waived. `quorum run` stops
+  on macOS at the Linux preflight. REQ-10.1 still holds.*
 
 ## Non-goals
 
