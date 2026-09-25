@@ -329,8 +329,8 @@ its own wave, in plan order.
 each a small, independent edit of the same kind — the same one-line fix,
 constant change, or field addition repeated across files — do not dispatch
 one subagent per task. Compose ONE dispatch brief listing every file and
-its change, send the whole batch to a single subagent, and commit its diff
-as one unit. Reserve one-dispatch-per-task for work that needs its own
+its change, send the whole batch to a single subagent, and commit each
+task's files as its own commit. Reserve one-dispatch-per-task for work that needs its own
 judgment or its own tests.
 
 Everything you paste into a dispatch prompt — and everything a subagent
@@ -398,8 +398,8 @@ frees.
   implementer template): the implementer never dispatches subagents —
   not helpers, and never a reviewer. Review arrives from you, after the
   last wave. In real sessions, every reviewer a worker spawned duplicated
-  the task review the controller dispatched anyway — a full extra
-  review seat per task.
+  a review the controller dispatched anyway — a full extra
+  review seat.
 - Record each implementer's agent identity from the dispatch result — a
   test failure goes back to it, and the fix wave resumes it.
 
@@ -480,7 +480,7 @@ parallel, in one message, each named one category: spec compliance,
 correctness, or quality.
 
 - **Reviewer inputs:** the review package, the spec path, the plan path,
-  the ledger's findings (files changed outside every task, deferred
+  every task's report file, the ledger's findings (files changed outside every task, deferred
   minors, concerns noted for the final reviewer, rulings), and the global
   constraints that bind the branch.
 - The global-constraints block you hand the reviewer is its attention
@@ -552,7 +552,8 @@ carry the other task's report path in the dispatch so it can read what that
 task did.
 
 **Else dispatch a fresh fixer one tier above** the original implementer's
-model (per Model Selection), with every brief path and report-file path the
+model (per Model Selection), using [implementer-prompt.md](implementer-prompt.md),
+with every brief path and report-file path the
 group's findings touch, the findings, and this framing: "A prior implementer
 built this; you own the fix now. Read the report file for what was done."
 The report file is the persistent memory either way.
@@ -689,7 +690,7 @@ Wave 2: Task 3
 
 [After the last wave]
 [Run review-package PLAN_FILE MERGE_BASE HEAD — 640 changed lines, so one reviewer]
-[Dispatch the final reviewer, most capable model, with the package, spec and plan]
+[Dispatch the final reviewer, most capable model, with the package, spec, plan and every task's report file]
 Final reviewer: Spec ❌:
   - Missing: Progress reporting (spec says "report every 100 items")
   Issues (Important): Magic number (100) in src/recovery.js
