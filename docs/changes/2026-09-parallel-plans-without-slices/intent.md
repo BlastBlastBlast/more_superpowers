@@ -22,9 +22,13 @@ run continued overnight.
   branch. Subagents do not run git state commands. The controller commits once per wave. Tasks that
   must edit the same file go into a later wave. Execution never switches branches.
 - A task is one independent unit, not a count of files. The three-file task limit goes.
-- A docs or instruction-file change gets its own path, with no TDD steps.
-- One spec requirement is enough to make a task. Sub-requirements add detail to their requirement;
-  they are not tasks of their own.
+- Docs go through the full chain like any other change. Plan tasks for docs have no TDD steps, and
+  the plan builds no test tooling the spec does not ask for.
+- One spec requirement is enough to make a task. Sub-requirements explain how their top requirement
+  is met; they are details of that requirement, not tasks of their own.
+- A spec's proof names evidence that exists or comes free (a reviewer reading, an existing test, a
+  grep). A spec adds no requirement whose only job is to build a proof, unless the intent asks for
+  that tool.
 - The spec keeps its guardrails and its clear statement of what is about to happen.
 - `reconciling-specs` stays as the finishing check that the spec was implemented, with no slice
   concepts left in it.
