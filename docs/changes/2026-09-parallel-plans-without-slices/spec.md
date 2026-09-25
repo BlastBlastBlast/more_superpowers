@@ -174,7 +174,7 @@ they serve.
     it.
   *Proof: `eval-baseline.md` and `eval-after.md` in this directory hold the runs and the labels.*
   *Source: Constraint 4.*
-  *Ruling (Lars, 2026-09-25): the live runs of REQ-10.2 and REQ-10.3 are waived. `quorum run` stops
+  *Ruling (Lars, 2026-09-25): Lars waives the live runs of REQ-10.2 and REQ-10.3. `quorum run` stops
   on macOS at the Linux preflight. REQ-10.1 still holds.*
 
 ## Non-goals
@@ -242,4 +242,4 @@ spec compliance" refer to the cap of the fix loop. REQ-7.4 sets the cap to one f
   the spec was wrong.
 - REQ-9.7: added. The fix wave also updated the Codex tool reference, which still named fix rounds
   and a review per task. Ruling: the spec was wrong.
-- REQ-10.2 and REQ-10.3: the live runs were waived. The ruling note sits under REQ-10.
+- REQ-10.2 and REQ-10.3: Lars waived the live runs. The ruling note sits under REQ-10.
