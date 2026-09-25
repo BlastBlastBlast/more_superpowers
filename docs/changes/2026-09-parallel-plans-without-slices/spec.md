@@ -21,6 +21,8 @@ Size: 10 requirements from 17 intent items: 11 outcome items, 5 constraints and 
   runs tests and makes commits.
 - **Final review:** the one review of the whole branch diff, after the last wave.
 - **Fix wave:** the one parallel dispatch that fixes the findings of the final review.
+- **Trivial fix:** a fix that changes only documentation files, comments or docstrings. Skill
+  instruction text, such as a `SKILL.md` or a prompt, and test bodies are not trivial.
 - **Git state command:** a git command that changes the index, HEAD, a branch or the stash, for
   example `add`, `commit`, `stash`, `checkout` and `switch`.
 
@@ -78,7 +80,8 @@ files or steps.
     own, while the other tasks of the wave continue.
   - **REQ-4.6** After every task of a wave reports, the controller MUST check that each changed
     file belongs to the owned files of one task. The controller MUST record a changed file outside
-    every task as a finding for the final review.
+    every task as a finding for the final review, and commit that file on its own so the final
+    reviewer sees it in the diff.
   - **REQ-4.7** The controller MUST run the test commands of the wave once, and send a failure to
     the implementer that owns the failing file.
   - **REQ-4.8** The controller MUST commit each task of the wave as its own commit.
@@ -154,6 +157,8 @@ they serve.
   - **REQ-9.4** The `task-brief` script MUST accept a plain task ID.
   - **REQ-9.5** A skill instruction file MUST NOT mention a slice of a plan.
   - **REQ-9.6** `CLAUDE.md` and `AGENTS.md` MUST hold the same text.
+  - **REQ-9.7** The Codex tool reference in `using-superpowers` MUST describe the fix wave, not fix
+    rounds or a review per task.
   *Proof: `git grep -in slice -- skills` finds no plan slice in an instruction file.
   `tests/claude-code/test-task-brief.sh` passes. `diff CLAUDE.md AGENTS.md` prints nothing.*
   *Source: Proposed outcome, item 11. Affected users and systems.*
@@ -228,3 +233,13 @@ spec compliance" refer to the cap of the fix loop. REQ-7.4 sets the cap to one f
   `subagent-driven-development` reviews after each task, so the wave loop has no upstream base.
 - Anthropic describes the same fan-out for its own work: independent subtasks in parallel, a
   dependency map before the fan-out, and a test or a script as the referee.
+
+## Reconciled 2026-09-25
+
+- REQ-7.5: the spec did not define "trivial". The build reused the skill's tested definition, which
+  excludes skill text and test bodies. The Vocabulary now defines it. Ruling: the spec was wrong.
+- REQ-4.6: the build also commits a stray file on its own, so the final reviewer sees it. Ruling:
+  the spec was wrong.
+- REQ-9.7: added. The fix wave also updated the Codex tool reference, which still named fix rounds
+  and a review per task. Ruling: the spec was wrong.
+- REQ-10.2 and REQ-10.3: the live runs were waived. The ruling note sits under REQ-10.
