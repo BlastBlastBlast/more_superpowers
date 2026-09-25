@@ -42,7 +42,7 @@ test comes back to that task before you move to the next one.
 
 After all waves complete:
 
-**Review the whole branch diff** from the branch base. Check that each top-level requirement is met, correctness holds, and quality is solid. This is the final review described in the plan.
+**Review the whole branch diff** from the branch base. Check that each top-level requirement is met, correctness holds, and quality is solid. This is the final review that superpowers:subagent-driven-development describes (Final Review): one whole-branch review, one fix pass, and one scoped re-review of the fix diff.
 
 **If this change has a `spec.md`:**
 - Announce: "I'm using the reconciling-specs skill to check the spec against what shipped."
