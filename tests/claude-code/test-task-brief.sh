@@ -2,8 +2,8 @@
 # Tests for task-brief: it accepts a plain task ID (REQ-9.4) and ends the
 # brief at the next heading whose level is the same as or higher than the
 # task heading -- a following task heading or a Waves section. It must also
-# keep extracting the old, un-sliced `Task <n>` form so plans written before
-# this change still work.
+# keep extracting the old, dotted, sliced `Task <slice>.<task>` form so plans
+# written before this change still work.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -67,13 +67,17 @@ PLAN
     cat > "$old_plan" <<'PLAN'
 # Old-Form Plan
 
-## Task 1: First thing
+## Slice 1: First slice
+
+### Task 1.1: First thing
 
 Do the first thing.
 
-## Task 2: Second thing
+### Task 1.2: Second thing
 
 Do the second thing.
+
+## Slice 2: Second slice
 PLAN
 
     # --- 2's brief holds its own body and text after the fence ---
@@ -121,16 +125,16 @@ PLAN
         echo "    exit: $rc"
     fi
 
-    # --- the old, un-sliced Task <n> form still extracts ---
-    local out_old="$TEST_ROOT/task-2-old-brief.md"
-    "$SDD_SCRIPTS/task-brief" "$old_plan" 2 "$out_old" >/dev/null
+    # --- the old, dotted, sliced Task 1.2 form still extracts ---
+    local out_old="$TEST_ROOT/task-1.2-old-brief.md"
+    "$SDD_SCRIPTS/task-brief" "$old_plan" 1.2 "$out_old" >/dev/null
     local body_old
     body_old="$(cat "$out_old")"
 
-    if [[ "$body_old" == *"Do the second thing."* && "$body_old" != *"Do the first thing."* ]]; then
-        pass "the old form 'Task 2' still extracts"
+    if [[ "$body_old" == *"Do the second thing."* && "$body_old" != *"Do the first thing."* && "$body_old" != *"## Slice 2"* ]]; then
+        pass "the old form 'Task 1.2' still extracts"
     else
-        fail "the old form 'Task 2' still extracts"
+        fail "the old form 'Task 1.2' still extracts"
         echo "    got: $body_old"
     fi
 

@@ -10,7 +10,7 @@
 set -euo pipefail
 
 if [ $# -lt 2 ] || [ $# -gt 3 ]; then
-  echo "usage: task-brief PLAN_FILE TASK_NUMBER [OUTFILE]" >&2
+  echo "usage: task-brief PLAN_FILE TASK_ID [OUTFILE]" >&2
   exit 2
 fi
 
