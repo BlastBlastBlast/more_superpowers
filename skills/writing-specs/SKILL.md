@@ -58,9 +58,12 @@ empty section as a gap there teaches the reader to skip the section everywhere.
   caller or a respondent can observe. Function names, SQL and file placement belong in the
   plan.
 - **State what proves it.** If you cannot name what would show a requirement met, it is a
-  goal. Move it to Non-goals.
-- **A sub-requirement covers a named edge.** A sub-requirement MUST cover an edge case that
-  the intent or the interview named. List an edge case you find yourself under
+  goal. Move it to Non-goals. A proof names evidence that exists, or that costs nothing to
+  produce: a reviewer who reads named files, an existing test or command, or a search such as
+  `git grep`. Add no requirement whose only purpose is to build a proof, unless the intent
+  asks for that tool.
+- **A sub-requirement states a detail of its parent.** A sub-requirement MUST state a detail
+  of how its parent requirement is met. List an edge case the intent does not name under
   `## Open questions carried from intent`, not as a sub-requirement.
 - **SHOULD needs an escape condition.** A SHOULD with no stated reason to deviate becomes a
   MUST in practice. Give the condition, or promote the requirement.
