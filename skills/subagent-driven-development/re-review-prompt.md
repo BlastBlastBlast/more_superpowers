@@ -64,7 +64,7 @@ Subagent (general-purpose):
     Inspect the fix diff for new problems the fix itself introduced. Do NOT
     re-review code the fix did not touch: if you notice an issue entirely
     outside the fix diff, report it under Out-of-Scope Observations — it
-    does not block this task and does not extend the loop. There is no
+    does not block the fix wave and does not extend the loop. There is no
     second fix wave: the controller handles whatever remains after this
     re-review directly.
 
@@ -104,7 +104,7 @@ Subagent (general-purpose):
 
     ### Verdict
 
-    **Fix round:** [All findings addressed, no new Critical/Important
+    **Fix wave:** [All findings addressed, no new Critical/Important
     breakage | Findings remain open] — list the open ones.
 ```
 
@@ -122,4 +122,4 @@ Subagent (general-purpose):
 - `[DIFF_FILE]` — the path `scripts/review-package PLAN_FILE FIX_BASE HEAD` printed
 
 **Re-reviewer returns:** per-finding verdicts (ADDRESSED / NOT ADDRESSED),
-new breakage in the fix diff, out-of-scope observations, and a round verdict.
+new breakage in the fix diff, out-of-scope observations, and a fix-wave verdict.

@@ -65,8 +65,8 @@ Subagent (general-purpose):
     Do all of this task's work yourself. Never spawn a subagent to
     implement part of the task, and above all never spawn a reviewer to
     check your work. Self-review (below) means reading your own diff.
-    Review is the controller's job: after you report, it dispatches a
-    fresh reviewer against your diff. A reviewer you spawn duplicates
+    Review is the controller's job: after the last wave, it dispatches
+    one final reviewer against the whole branch. A reviewer you spawn duplicates
     that review at full cost, and its approval counts for nothing in
     the process. If you catch yourself thinking "an independent review
     would strengthen my report" — that review is already scheduled.
@@ -151,7 +151,7 @@ Subagent (general-purpose):
 
     ## After Review Findings
 
-    If the task review finds issues, you will be resumed with the findings.
+    If the final review finds issues in your files, you may be resumed with the findings.
     Fix them, re-run the tests that cover the amended code, and append a fix
     report to your report file: what you changed, the covering tests you
     ran, the command, and the output. Reviewers will not re-run tests for

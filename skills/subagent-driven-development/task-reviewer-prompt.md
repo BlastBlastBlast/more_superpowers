@@ -48,6 +48,9 @@ Subagent (general-purpose):
     Read every task's report (fix reports appended at the end of each):
     [REPORT_FILES]
 
+    Findings the controller logged during the waves; confirm or reject each
+    with evidence: [LEDGER_FINDINGS]
+
     ## Diff Under Review
 
     **Base:** [BASE_SHA] — the branch base, before the first wave dispatched.
@@ -250,6 +253,9 @@ Subagent (general-purpose):
   are already in this template)
 - `[REPORT_FILES]` — REQUIRED: every task's report file (fix reports
   appended at the end of each)
+- `[LEDGER_FINDINGS]` — optional: findings the controller logged during the
+  waves (for example an out-of-scope file, or a mismatch it noticed);
+  confirm or reject each with evidence. Omit when the ledger holds none.
 - `[BASE_SHA]` — the branch base: the commit before the first wave dispatched
 - `[HEAD_SHA]` — current commit, after every wave
 - `[DIFF_FILE]` — REQUIRED: the path the controller wrote the review
