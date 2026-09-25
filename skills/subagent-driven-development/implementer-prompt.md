@@ -32,12 +32,12 @@ Subagent (general-purpose):
     ## Your Job
 
     Once you're clear on requirements:
-    1. Implement exactly what the task specifies
+    1. Implement exactly what the task specifies, editing only your owned
+       files
     2. Write tests (following TDD if task says to)
     3. Verify implementation works
-    4. Commit your work
-    5. Self-review (see below)
-    6. Report back
+    4. Self-review (see below)
+    5. Report back
 
     Work from: [directory]
 
@@ -45,7 +45,20 @@ Subagent (general-purpose):
     It's always OK to pause and clarify. Don't guess or make assumptions.
 
     While iterating, run the focused test for what you're changing; run the
-    full suite once before committing, not after every edit.
+    full suite once before reporting, not after every edit.
+
+    ## Your Owned Files, and No Git State
+
+    Edit only your owned files: the files your task brief lists under
+    **Files**. Touching a file outside that list is another task's work,
+    even when the fix looks trivial or the change is one line — report it
+    as a concern instead.
+
+    You run no git state command: no `add`, `commit`, `stash`, `checkout`,
+    `switch`, or anything else that changes the index, HEAD, a branch or
+    the stash. The controller commits your work, and every other task's,
+    after you report. Leave the working tree's git state exactly as you
+    found it.
 
     ## You Do Not Dispatch Subagents
 
@@ -89,7 +102,7 @@ Subagent (general-purpose):
 
     This is not deference for its own sake. You see one brief. The controller sees the
     whole plan, the spec, and every other task. A plan silently repaired to match your
-    slice is a plan that no longer describes what the other slices are building against,
+    task is a plan that no longer describes what the other tasks are building against,
     and nobody finds out until they collide.
 
     ## When You're in Over Your Head
@@ -160,7 +173,7 @@ Subagent (general-purpose):
     Then report back with ONLY (under 15 lines — the detail lives in the
     report file):
     - **Status:** DONE | DONE_WITH_CONCERNS | BLOCKED | NEEDS_CONTEXT
-    - Commits created (short SHA + subject)
+    - Files changed (your owned files only)
     - One-line test summary (e.g. "14/14 passing, output pristine")
     - Your concerns, if any
     - The report file path
