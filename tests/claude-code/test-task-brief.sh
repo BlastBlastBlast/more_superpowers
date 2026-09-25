@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Tests for task-brief: it accepts a <slice>.<task> id (REQ-9.1) and ends the
+# Tests for task-brief: it accepts a plain task ID (REQ-9.4) and ends the
 # brief at the next heading whose level is the same as or higher than the
-# task heading -- a following task heading or the slice's own heading
-# (REQ-9.2). It must also keep extracting the old, un-sliced `Task <n>` form
-# so plans written before this change still work.
+# task heading -- a following task heading or a Waves section. It must also
+# keep extracting the old, un-sliced `Task <n>` form so plans written before
+# this change still work.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -35,33 +35,32 @@ main() {
     cat > "$plan" <<'PLAN'
 # Fixture Plan
 
-### Slice 1: First slice
-
-#### Task 1.1: Alpha
+### Task 1: Alpha
 
 Alpha body text.
 
-#### Task 1.2: Bravo
+### Task 2: Bravo
 
 Bravo body text before the fence.
 
 ```text
-#### Task 9.9: Fake task inside a fence
+### Task 9.9: Fake task inside a fence
 
 Fake body inside a fence: this heading must not start or end a brief.
 ```
 
 Bravo body text after the fence.
 
-### Slice 2: Second slice
-
-#### Task 2.1: Charlie
+### Task 3: Charlie
 
 Charlie body text.
 
-#### Task 2.2: Delta
+## Waves
 
-Delta body text.
+| Wave | Tasks |
+|------|-------|
+| 1    | 1, 2  |
+| 2    | 3     |
 PLAN
 
     local old_plan="$TEST_ROOT/old-plan.md"
@@ -77,38 +76,39 @@ Do the first thing.
 Do the second thing.
 PLAN
 
-    # --- 1.2's brief holds its own body and stops at the slice edge ---
-    local out_1_2="$TEST_ROOT/task-1.2-brief.md"
-    "$SDD_SCRIPTS/task-brief" "$plan" 1.2 "$out_1_2" >/dev/null
-    local body_1_2
-    body_1_2="$(cat "$out_1_2")"
+    # --- 2's brief holds its own body and text after the fence ---
+    local out_2="$TEST_ROOT/task-2-brief.md"
+    "$SDD_SCRIPTS/task-brief" "$plan" 2 "$out_2" >/dev/null
+    local body_2
+    body_2="$(cat "$out_2")"
 
-    if [[ "$body_1_2" == *"Bravo body text before the fence."* \
-        && "$body_1_2" == *"Bravo body text after the fence."* ]]; then
-        pass "brief for 1.2 contains Task 1.2's body"
+    if [[ "$body_2" == *"Bravo body text before the fence."* \
+        && "$body_2" == *"Bravo body text after the fence."* ]]; then
+        pass "brief for 2 contains Task 2's body and text after fence"
     else
-        fail "brief for 1.2 contains Task 1.2's body"
-        echo "    got: $body_1_2"
+        fail "brief for 2 contains Task 2's body and text after fence"
+        echo "    got: $body_2"
     fi
 
-    if [[ "$body_1_2" != *"### Slice 2"* ]]; then
-        pass "brief for 1.2 does not contain the next slice heading"
+    # --- 2's brief does not contain Task 3's body (fenced heading is inside a fence, so included) ---
+    if [[ "$body_2" != *"Charlie body text."* ]]; then
+        pass "brief for 2 does not contain Task 3's body"
     else
-        fail "brief for 1.2 does not contain the next slice heading"
-        echo "    got: $body_1_2"
+        fail "brief for 2 does not contain Task 3's body"
+        echo "    got: $body_2"
     fi
 
-    # --- 2.1's brief does not run into 2.2's body ---
-    local out_2_1="$TEST_ROOT/task-2.1-brief.md"
-    "$SDD_SCRIPTS/task-brief" "$plan" 2.1 "$out_2_1" >/dev/null
-    local body_2_1
-    body_2_1="$(cat "$out_2_1")"
+    # --- 3's brief ends before Waves section ---
+    local out_3="$TEST_ROOT/task-3-brief.md"
+    "$SDD_SCRIPTS/task-brief" "$plan" 3 "$out_3" >/dev/null
+    local body_3
+    body_3="$(cat "$out_3")"
 
-    if [[ "$body_2_1" == *"Charlie body text."* && "$body_2_1" != *"Delta body text."* ]]; then
-        pass "brief for 2.1 does not contain Task 2.2's body"
+    if [[ "$body_3" == *"Charlie body text."* && "$body_3" != *"## Waves"* ]]; then
+        pass "brief for 3 ends before Waves section"
     else
-        fail "brief for 2.1 does not contain Task 2.2's body"
-        echo "    got: $body_2_1"
+        fail "brief for 3 ends before Waves section"
+        echo "    got: $body_3"
     fi
 
     # --- the heading inside the fence does not start a brief of its own ---
@@ -121,18 +121,8 @@ PLAN
         echo "    exit: $rc"
     fi
 
-    # --- a missing id exits 3 ---
-    rc=0
-    "$SDD_SCRIPTS/task-brief" "$plan" 3.1 "$TEST_ROOT/task-3.1-brief.md" >/dev/null 2>&1 || rc=$?
-    if [[ "$rc" -eq 3 ]]; then
-        pass "a missing id 3.1 exits 3"
-    else
-        fail "a missing id 3.1 exits 3"
-        echo "    exit: $rc"
-    fi
-
     # --- the old, un-sliced Task <n> form still extracts ---
-    local out_old="$TEST_ROOT/task-2-brief.md"
+    local out_old="$TEST_ROOT/task-2-old-brief.md"
     "$SDD_SCRIPTS/task-brief" "$old_plan" 2 "$out_old" >/dev/null
     local body_old
     body_old="$(cat "$out_old")"
