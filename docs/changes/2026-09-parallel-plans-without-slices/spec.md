@@ -1,6 +1,6 @@
 # Spec: parallel plans without slices
 
-Intent: `intent.md`. Date: 2026-09-25. Status: draft.
+Intent: `intent.md`. Date: 2026-09-25. Status: approved.
 
 ## Summary
 
@@ -123,6 +123,8 @@ scoped re-review.
     three ways. It fixes a trivial finding itself. It stops and asks your human partner about a
     correctness or spec break. It records any other finding in the ledger and in the pull request
     body.
+  - **REQ-7.6** The rationalization row "I'll fix it myself, dispatching is overhead" MUST apply
+    to findings before the re-review only.
   *Proof: the `subagent-driven-development` skill text contains each rule. The
   `sdd-re-review-scoped` and `sdd-fix-loop-resumes-implementer` scenarios pass.*
   *Source: Proposed outcome, item 4.*
@@ -201,6 +203,7 @@ table without evidence.
 - Option B: narrow the row to findings before the re-review, and record this trusthere session as
   the evidence. Cost: the row changes without an eval of the new wording.
 - Owner: Lars.
+- **Ruling (Lars, 2026-09-25): Option B.** REQ-7.6 records it.
 
 **F2. The fix loop drops from two rounds to one, and three tested rows name the cap.** The rows
 "One more round will converge", "This finding is obviously wrong, I'll drop it" and "Close enough on
@@ -209,6 +212,7 @@ spec compliance" refer to the cap of the fix loop. REQ-7.4 sets the cap to one f
 - Option B: reword the rows to name the one fix wave. Cost: the rows change without an eval of the
   new wording.
 - Owner: Lars.
+- **Ruling (Lars, 2026-09-25): Option A.** The three rows stay word for word.
 
 ## Open questions carried from intent
 
