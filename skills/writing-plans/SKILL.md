@@ -57,7 +57,6 @@ Inside a task, **each step is one action (2-5 minutes):**
 - "Run it to make sure it fails" - step
 - "Implement the minimal code to make the test pass" - step
 - "Run the tests and make sure they pass" - step
-- "Commit" - step
 
 ## Risk, And How Many Tests It Buys
 
@@ -151,7 +150,7 @@ carry — an exact signature more than one task uses, or a value the spec gives 
 **Depends on:** none *(or the task numbers this one needs to land first)*
 
 **Model:** cheap tier — files, behaviour and tests are all stated below, and the task touches one
-production file. *(omit this field entirely when the session implements the task itself)*
+production file. *(write `session` when the session implements the task itself)*
 
 **Interfaces:** *(omit when this task shares no interface with another task)*
 - Consumes: [what this task uses from an earlier task — exact signatures]
@@ -168,7 +167,6 @@ writes and what each one asserts, and its test command]
 - [ ] Write the function: read the cache; on a hit younger than 60 seconds return it; on a miss,
   call the upstream API and populate the cache.
 - [ ] Run the test and see it pass.
-- [ ] Commit: `feat: cache the status lookup`.
 ````
 
 ## Waves
